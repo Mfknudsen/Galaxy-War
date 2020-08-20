@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - AI Director
+  - Cover
   layers:
   - Default
   - TransparentFX
@@ -18,8 +19,8 @@ TagManager:
   - AttackAble
   - Ground
   - Core
-  - 
-  - 
+  - Cover
+  - CoverSpot
   - 
   - 
   - 

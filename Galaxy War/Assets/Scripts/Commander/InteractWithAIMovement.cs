@@ -12,6 +12,7 @@ public class InteractWithAIMovement : MonoBehaviour
     [Header("Waypoint")]
     public AI.WaypointType Type;
     public GameObject Waypoint = null;
+    public Transform waypointParent = null;
     public LayerMask groundMask = 0;
     public KeyCode CreateWaypointTrigger = KeyCode.Mouse1;
     private bool checkShiftCount = false;
@@ -20,14 +21,14 @@ public class InteractWithAIMovement : MonoBehaviour
     public float boxCheckHeight = 20;
     public LayerMask coreMask = 0;
     public KeyCode SelectionTrigger = KeyCode.Mouse0;
-    private Core[] SelectedCores = new Core[0];
+    [SerializeField] private Core[] SelectedCores = new Core[0];
     private Vector3 startPos = Vector3.zero, endPos = Vector3.zero;
     private bool setToPatrol = false;
 
     [Header("--UI Visualization")]
     public Image image = null;
 
-    void Update()
+    void FixedUpdate()
     {
         if (checkShiftCount)
         {
@@ -72,6 +73,7 @@ public class InteractWithAIMovement : MonoBehaviour
                 {
                     GameObject obj = Instantiate(Waypoint);
                     obj.transform.position = hit.point;
+                    obj.transform.parent = waypointParent;
 
                     foreach (Core c in SelectedCores)
                     {
@@ -133,11 +135,10 @@ public class InteractWithAIMovement : MonoBehaviour
         endPos.y = boxCheckHeight;
         Vector3 center = startPos + ((endPos - startPos) / 2);
         Vector3 sizeDim = new Vector3(Mathf.Abs(endPos.x - startPos.x), boxCheckHeight, Mathf.Abs(endPos.z - startPos.z));
-        Vector3 orientation = cam.transform.rotation.eulerAngles;
-        orientation.z = 0;
-        orientation.x = 0;
+        Quaternion rot = cam.transform.localRotation;
+        Debug.Log(rot);
 
-        Collider[] cols = Physics.OverlapBox(center, sizeDim, Quaternion.Euler(orientation), coreMask, QueryTriggerInteraction.Ignore);
+        Collider[] cols = Physics.OverlapBox(center, sizeDim, Quaternion.identity, coreMask, QueryTriggerInteraction.Ignore);
         foreach (Collider c in cols)
         {
             Core core = c.gameObject.GetComponent<Core>();

@@ -55,15 +55,18 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Commander\InteractWithAIMovement.cs" />
     <Compile Include="Assets\Scripts\AI\Director.cs" />
     <Compile Include="Assets\Scripts\AI\Core.cs" />
     <Compile Include="Assets\Exampels\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\_Common\WeaponReciever.cs" />
-    <Compile Include="Assets\Scripts\_Common\InteractReciever.cs" />
-    <Compile Include="Assets\Scripts\AI\Common.cs" />
-    <Compile Include="Assets\Scripts\Commander\InteractWithAIMovement.cs" />
     <Compile Include="Assets\Scripts\_Common\Waypoint.cs" />
+    <Compile Include="Assets\Scripts\Defenses\Cover\Cover.cs" />
+    <Compile Include="Assets\Scripts\_Common\InteractReciever.cs" />
     <Compile Include="Assets\Scripts\_Common\Settings\UI_Rescaler.cs" />
+    <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
+    <Compile Include="Assets\Scripts\AI\Common.cs" />
+    <Compile Include="Assets\Scripts\Defenses\Cover\CoverManager.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

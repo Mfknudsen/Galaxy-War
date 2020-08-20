@@ -6,10 +6,11 @@ using AI;
 
 //temp
 using TMPro;
+using System.Net;
 
 namespace AI
 {
-    public enum State { Idle, Walking, Partol, Cover, Fighting }
+    public enum State { Idle, Walking, Partol, Fighting }
 
     public class Core : MonoBehaviour
     {
@@ -18,7 +19,6 @@ namespace AI
 
         [Header("Object Reference")]
         public bool CoreIsActive = false;
-        public LayerMask groundMask, targetMask;
         public State State;
         public AI.Director Director = null;
         [HideInInspector] public int updateDelay = 1;
@@ -30,7 +30,7 @@ namespace AI
         [Header("Movement")]
         public float checkDist = 0.2f;
         public AI.WaypointType waypointType;
-        [HideInInspector] public Transform[] wayPoints = new Transform[0];
+        public Transform[] wayPoints = new Transform[0];
         private Transform curWaypoint = null;
         private Transform lastWaypoint = null;
         private NavMeshAgent Agent = null;
@@ -38,10 +38,19 @@ namespace AI
         [Header("Sight")]
         public float sightRadius = 15;
         public float sightAngel = 50;
-        private GameObject[] targableObjs = new GameObject[0];
+        public LayerMask terrainMask = 0, targetMask = 0;
         private GameObject[] objInRadius = new GameObject[0];
 
-        [Header("Weapon")]
+        [Header("Cover")]
+        public LayerMask coverMask = 0;
+        public float overideDist = 2.5f;
+        private bool inCover = false, foundCover = false, findCoverNow = false;
+        private Vector3 posToCheck = Vector3.zero;
+        [SerializeField] private CoverSpot choosenCover = null;
+        private CoverSpot[] coversInRange = new CoverSpot[0];
+
+        [Header("Fighting")]
+        public GameObject[] targableObjs = new GameObject[0];
         public GameObject[] weaponsInInventory = new GameObject[3];
         public GameObject curWeapon = null;
 
@@ -77,82 +86,24 @@ namespace AI
                 switch (State)
                 {
                     case State.Idle:
-                        StateText.text = "Idle";
-                        if (wayPoints.Length != 0)
-                        {
-                            if (waypointType == WaypointType.Patrol_Conteniusly || waypointType == WaypointType.Patrol_FromTo)
-                                State = State.Partol;
-                            else if (waypointType == WaypointType.One_Way)
-                                State = State.Walking;
-                        }
+                        IdleUpdate();
                         break;
 
                     case State.Walking:
-                        StateText.text = "Walking";
-
-                        if (curWaypoint == null && lastWaypoint != null)
-                        {
-                            curWaypoint = lastWaypoint;
-                            Agent.isStopped = false;
-                            Agent.SetDestination(curWaypoint.position);
-                        }
-                        else if (curWaypoint == null)
-                        {
-                            Agent.isStopped = false;
-                            curWaypoint = wayPoints[0];
-                            Agent.SetDestination(curWaypoint.position);
-                        }
-
-                        if (wayPoints.Length != 0)
-                        {
-                            if (Common.CheckDistanceToPoint(transform.position, curWaypoint.position, checkDist))
-                            {
-                                lastWaypoint = curWaypoint;
-                                curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
-
-                                wayPoints = Common.RemovePosition(wayPoints, lastWaypoint);
-                                lastWaypoint = null;
-                            }
-
-                            Agent.SetDestination(curWaypoint.position);
-                        }
+                        WalkingUpdate();
                         break;
 
                     case State.Partol:
-                        StateText.text = "Patrol";
-
-                        if (curWaypoint == null && lastWaypoint != null)
-                        {
-                            curWaypoint = lastWaypoint;
-                            Agent.isStopped = false;
-                            Agent.SetDestination(curWaypoint.position);
-                        }
-                        else if (curWaypoint == null)
-                        {
-                            Agent.isStopped = false;
-                            curWaypoint = wayPoints[0];
-                            Agent.SetDestination(curWaypoint.position);
-                        }
-
-                        if (Common.CheckDistanceToPoint(transform.position, curWaypoint.position, checkDist))
-                        {
-                            curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
-
-                            Agent.SetDestination(curWaypoint.position);
-                        }
-                        break;
-
-                    case State.Cover:
-                        StateText.text = "Cover";
+                        PatrolUpdate();
                         break;
 
                     case State.Fighting:
-                        StateText.text = "Fighting";
+                        FightUpdate();
                         break;
                 }
             }
 
-            UpdateState();
+            SwitchState();
         }
 
         public void UpdateFixedCore()
@@ -160,7 +111,7 @@ namespace AI
 
         }
 
-        private void UpdateState()
+        private void SwitchState()
         {
             switch (State)
             {
@@ -176,10 +127,6 @@ namespace AI
                     PatrolStateCheck();
                     break;
 
-                case State.Cover:
-                    CoverStateCheck();
-                    break;
-
                 case State.Fighting:
                     FightingStateCheck();
                     break;
@@ -192,12 +139,114 @@ namespace AI
             targableObjs = Common.UpdateInSight(transform, objInRadius, lookDirections, sightRadius, targetMask, sightAngel);
         }
 
+        #region UpdateState
+        private void IdleUpdate()
+        {
+            StateText.text = "Idle";
+        }
+
+        private void WalkingUpdate()
+        {
+            StateText.text = "Walking";
+
+            if (curWaypoint == null && lastWaypoint != null)
+            {
+                curWaypoint = lastWaypoint;
+                Agent.isStopped = false;
+                Agent.SetDestination(curWaypoint.position);
+            }
+            else if (curWaypoint == null)
+            {
+                Agent.isStopped = false;
+                curWaypoint = wayPoints[0];
+                Agent.SetDestination(curWaypoint.position);
+            }
+
+            if (wayPoints.Length != 0)
+            {
+                if (Common.CheckDistanceToPoint(transform.position, curWaypoint.position, checkDist))
+                {
+                    lastWaypoint = curWaypoint;
+                    curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
+
+                    wayPoints = Common.RemovePosition(wayPoints, lastWaypoint);
+                    lastWaypoint = null;
+                }
+
+                Agent.SetDestination(curWaypoint.position);
+            }
+        }
+
+        private void PatrolUpdate()
+        {
+            StateText.text = "Patrol";
+
+            if (curWaypoint == null && lastWaypoint != null)
+            {
+                curWaypoint = lastWaypoint;
+                Agent.isStopped = false;
+                Agent.SetDestination(curWaypoint.position);
+            }
+            else if (curWaypoint == null)
+            {
+                Agent.isStopped = false;
+                curWaypoint = wayPoints[0];
+                Agent.SetDestination(curWaypoint.position);
+            }
+
+            if (Common.CheckDistanceToPoint(transform.position, curWaypoint.position, checkDist))
+            {
+                curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
+
+                Agent.SetDestination(curWaypoint.position);
+            }
+        }
+
+        private void FightUpdate()
+        {
+            StateText.text = "Fighting";
+
+            if (!inCover)
+            {
+                coversInRange = Common.FindCover(transform.position, sightRadius, coverMask);
+                if (coversInRange.Length > 0 && choosenCover == null)
+                {
+                    choosenCover = Common.EvaluateCover(coversInRange, targableObjs);
+
+                    if (choosenCover != null)
+                    {
+                        if (curWaypoint != choosenCover.transform)
+                        {
+                            choosenCover.CoverContainer.usableCoverSpots.Remove(choosenCover.gameObject);
+                            curWaypoint = choosenCover.transform;
+                            Agent.isStopped = false;
+                            Agent.SetDestination(curWaypoint.position);
+                        }
+                    }
+                }
+                else if (coversInRange.Length > 0 && Common.CheckDistanceToPoint(transform.position, curWaypoint.position, 0.1f))
+                {
+                    Agent.isStopped = true;
+                    curWaypoint = null;
+                    inCover = true;
+                }
+            }
+        }
+        #endregion
+
         #region SwitchState
         private void IdleStateCheck()
         {
             if (targableObjs.Length != 0)
             {
                 State = State.Fighting;
+            }
+            else if (wayPoints.Length != 0)
+            {
+                if (waypointType == WaypointType.Patrol_Conteniusly || waypointType == WaypointType.Patrol_FromTo)
+                    State = State.Partol;
+                else if (waypointType == WaypointType.One_Way)
+                    State = State.Walking;
             }
         }
 
@@ -223,11 +272,6 @@ namespace AI
                 State = State.Idle;
                 curWaypoint = null;
             }
-        }
-
-        private void CoverStateCheck()
-        {
-
         }
 
         private void FightingStateCheck()

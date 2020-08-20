@@ -12,6 +12,7 @@ namespace AI
         #endregion
 
         #region Sight
+        //Finding Attackable Targets:
         public Vector3[] GetSightDirections(int ViewDirectionCount)
         {
             Vector3[] directions = new Vector3[ViewDirectionCount];
@@ -92,6 +93,54 @@ namespace AI
                 return true;
 
             return false;
+        }
+
+        //Finding Cover:
+        public CoverSpot[] FindCover(Vector3 pos, float dist, LayerMask coverMask)
+        {
+            List<CoverSpot> result = new List<CoverSpot>();
+
+            Collider[] colliders = Physics.OverlapSphere(pos, dist, coverMask, QueryTriggerInteraction.Ignore);
+            foreach (Collider c in colliders)
+            {
+                Cover check = c.gameObject.GetComponent<Cover>();
+
+                foreach (GameObject cs in check.usableCoverSpots)
+                    result.Add(cs.GetComponent<CoverSpot>());
+            }
+
+            return result.ToArray();
+        }
+
+        public CoverSpot EvaluateCover(CoverSpot[] coversInRange, GameObject[] targets)
+        {
+            CoverSpot result = null;
+            float curValue = 0;
+
+            foreach (CoverSpot cs in coversInRange)
+            {
+                float value = 0;
+
+                foreach (GameObject t in targets)
+                {
+                    Vector3 dir = (t.transform.position - cs.transform.position).normalized;
+
+                    value += Vector3.Angle(cs.transform.forward, dir);
+                }
+
+                if (result == null)
+                {
+                    curValue = value;
+                    result = cs;
+                }
+                else if (value < curValue)
+                {
+                    curValue = value;
+                    result = cs;
+                }
+            }
+
+            return result;
         }
         #endregion
 

@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Commander\InteractWithAIMovement.cs" />
+    <Compile Include="Assets\Scripts\Defenses\Cover\CoverManager.cs" />
     <Compile Include="Assets\Scripts\AI\Director.cs" />
     <Compile Include="Assets\Scripts\AI\Core.cs" />
     <Compile Include="Assets\Exampels\SimpleCameraController.cs" />
@@ -66,7 +67,7 @@
     <Compile Include="Assets\Scripts\_Common\Settings\UI_Rescaler.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
     <Compile Include="Assets\Scripts\AI\Common.cs" />
-    <Compile Include="Assets\Scripts\Defenses\Cover\CoverManager.cs" />
+    <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

@@ -18,12 +18,13 @@ public class InteractWithAIMovement : MonoBehaviour
     private bool checkShiftCount = false;
 
     [Header("Unit Selection")]
-    public float boxCheckHeight = 20;
     public LayerMask coreMask = 0;
-    public KeyCode SelectionTrigger = KeyCode.Mouse0;
-    [SerializeField] private Core[] SelectedCores = new Core[0];
-    private Vector3 startPos = Vector3.zero, endPos = Vector3.zero;
+    public KeyCode SelectionTrigger = KeyCode.Mouse0, KeepOldTrigger = KeyCode.LeftShift;
+    public float checkBoxHeight = 50;
+    [SerializeField] private List<Core> SelectedCores = new List<Core>();
     private bool setToPatrol = false;
+    Vector2 uiPosition = Vector2.zero;
+
 
     [Header("--UI Visualization")]
     public Image image = null;
@@ -44,14 +45,11 @@ public class InteractWithAIMovement : MonoBehaviour
             CreateNewWaypoint();
 
         if (Input.GetKeyDown(SelectionTrigger))
-            startPos = GetVectorFromRay();
+        { }
         if (Input.GetKey(SelectionTrigger))
-            endPos = GetVectorFromRay();
+        { }
         if (Input.GetKeyUp(SelectionTrigger))
-        {
-            if (startPos != endPos)
-                SelectedCores = CreateRectDetection();
-        }
+        { }
 
         if (Type != AI.WaypointType.One_Way)
         {
@@ -63,7 +61,7 @@ public class InteractWithAIMovement : MonoBehaviour
     #region Send Commands
     private void CreateNewWaypoint()
     {
-        if (SelectedCores.Length != 0)
+        if (SelectedCores.Count != 0)
         {
             RaycastHit hit;
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -115,46 +113,74 @@ public class InteractWithAIMovement : MonoBehaviour
     #endregion
 
     #region Selection
-    private Vector3 GetVectorFromRay()
+    private Vector2[] GetBoundingBox(Vector2 start, Vector2 end)
     {
-        RaycastHit hit;
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundMask, QueryTriggerInteraction.Ignore))
+        Vector2 p1 = Vector2.zero, p2 = Vector2.zero, p3 = Vector2.zero, p4 = Vector2.zero;
+
+        if (start.x < end.x)
         {
-            return hit.point;
+            if (start.y > end.y)
+            {
+                p1 = start;
+                p2 = new Vector2(end.x, start.y);
+                p3 = new Vector2(start.x, end.y);
+                p4 = end;
+            }
+            else
+            {
+                p1 = new Vector2(start.x, end.y);
+                p2 = end;
+                p3 = start;
+                p4 = new Vector2(end.x, start.y);
+            }
         }
-
-        return Vector3.zero;
-    }
-
-    private Core[] CreateRectDetection()
-    {
-        List<Core> cores = new List<Core>();
-
-        startPos.y = 0;
-        endPos.y = boxCheckHeight;
-        Vector3 center = startPos + ((endPos - startPos) / 2);
-        Vector3 sizeDim = new Vector3(Mathf.Abs(endPos.x - startPos.x), boxCheckHeight, Mathf.Abs(endPos.z - startPos.z));
-        Quaternion rot = cam.transform.localRotation;
-        Debug.Log(rot);
-
-        Collider[] cols = Physics.OverlapBox(center, sizeDim, Quaternion.identity, coreMask, QueryTriggerInteraction.Ignore);
-        foreach (Collider c in cols)
-        {
-            Core core = c.gameObject.GetComponent<Core>();
-            if (core != null)
-                cores.Add(core);
-        }
-
-        return cores.ToArray();
-    }
-
-    public void SwithWaypointType()
-    {
-        if (setToPatrol)
-            setToPatrol = false;
         else
-            setToPatrol = true;
+        {
+            if (start.y > end.y)
+            {
+                p1 = new Vector2(end.x, start.y);
+                p2 = start;
+                p3 = end;
+                p4 = new Vector2(start.x, end.y);
+            }
+            else
+            {
+                p1 = end;
+                p2 = new Vector2(start.x, end.y);
+                p3 = new Vector2(end.x, start.y);
+                p4 = start;
+            }
+        }
+
+        Vector2[] result = { p1, p2, p3, p4 };
+        return result;
+    }
+
+    private Mesh GenerateSelectionMesh(Vector3[] corners)
+    {
+        Vector3[] verts = new Vector3[8];
+        int[] tris = { 0, 1, 2, 2, 1, 3, 4, 6, 0, 0, 6, 2, 6, 7, 2, 2, 7, 3, 7, 5, 3, 3, 5, 1, 5, 0, 1, 1, 4, 0, 4, 5, 6, 6, 5, 7 };
+
+        for (int i = 0; i < 4; i++)
+            verts[i] = corners[i];
+        for (int j = 4; j < 8; j++)
+            verts[j] = corners[j - 4] + transform.forward * checkBoxHeight;
+
+        Mesh result = new Mesh();
+        result.vertices = verts;
+        result.triangles = tris;
+
+        return result;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!Input.GetKey(KeepOldTrigger))
+            SelectedCores.Clear();
+
+        Core c = other.GetComponent<Core>();
+        if (other.GetComponent<Selectable>() != null && c != null)
+            SelectedCores.Add(c);
     }
     #endregion
 
@@ -162,6 +188,16 @@ public class InteractWithAIMovement : MonoBehaviour
     private void VisualizeRectDetection()
     {
 
+    }
+    #endregion
+
+    #region ReceiveCommands
+    public void SwithWaypointType()
+    {
+        if (setToPatrol)
+            setToPatrol = false;
+        else
+            setToPatrol = true;
     }
     #endregion
 }

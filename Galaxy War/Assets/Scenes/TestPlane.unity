@@ -763,7 +763,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 814496263}
-  - component: {fileID: 814496262}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -771,33 +770,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &814496262
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 814496261}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5dab36d2d3191474184dec3718264b2e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cam: {fileID: 1165985453}
-  Type: 0
-  Waypoint: {fileID: 199858009132534806, guid: 2badf55d0dfe5624aaf9e287525241a0, type: 3}
-  waypointParent: {fileID: 859222397}
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  CreateWaypointTrigger: 324
-  boxCheckHeight: 500
-  coreMask:
-    serializedVersion: 2
-    m_Bits: 2048
-  SelectionTrigger: 323
-  SelectedCores: []
-  image: {fileID: 0}
 --- !u!4 &814496263
 Transform:
   m_ObjectHideFlags: 0
@@ -1215,6 +1187,7 @@ GameObject:
   - component: {fileID: 1165985453}
   - component: {fileID: 1165985452}
   - component: {fileID: 1165985455}
+  - component: {fileID: 1165985456}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1392,6 +1365,34 @@ MonoBehaviour:
       data1: 0
       data2: 0
   defaultFrameSettings: 0
+--- !u!114 &1165985456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165985451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5dab36d2d3191474184dec3718264b2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cam: {fileID: 1165985453}
+  Type: 0
+  Waypoint: {fileID: 199858009132534806, guid: 2badf55d0dfe5624aaf9e287525241a0, type: 3}
+  waypointParent: {fileID: 859222397}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  CreateWaypointTrigger: 324
+  coreMask:
+    serializedVersion: 2
+    m_Bits: 2048
+  SelectionTrigger: 323
+  KeepOldTrigger: 304
+  checkBoxHeight: 100
+  SelectedCores: []
+  image: {fileID: 0}
 --- !u!1 &1242948241
 GameObject:
   m_ObjectHideFlags: 0
@@ -1920,6 +1921,7 @@ GameObject:
   - component: {fileID: 1470285970}
   - component: {fileID: 1470285969}
   - component: {fileID: 1470285968}
+  - component: {fileID: 1470285972}
   m_Layer: 12
   m_Name: Cover (1)
   m_TagString: Cover
@@ -2036,6 +2038,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1470285966}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!208 &1470285972
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1470285966}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &1573876228
 GameObject:
   m_ObjectHideFlags: 0
@@ -2206,6 +2224,7 @@ GameObject:
   - component: {fileID: 1699067225}
   - component: {fileID: 1699067224}
   - component: {fileID: 1699067223}
+  - component: {fileID: 1699067227}
   m_Layer: 12
   m_Name: Cover
   m_TagString: Cover
@@ -2322,6 +2341,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1699067221}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!208 &1699067227
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1699067221}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &1762349579
 GameObject:
   m_ObjectHideFlags: 0

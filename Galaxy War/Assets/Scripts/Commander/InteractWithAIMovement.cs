@@ -13,18 +13,22 @@ public class InteractWithAIMovement : MonoBehaviour
     public AI.WaypointType Type;
     public GameObject Waypoint = null;
     public Transform waypointParent = null;
-    public LayerMask groundMask = 0;
+    public LayerMask detectionMask = 0;
     public KeyCode CreateWaypointTrigger = KeyCode.Mouse1;
     private bool checkShiftCount = false;
 
     [Header("Unit Selection")]
+    public Transform creationTransform = null;
     public LayerMask coreMask = 0;
     public KeyCode SelectionTrigger = KeyCode.Mouse0, KeepOldTrigger = KeyCode.LeftShift;
     public float checkBoxHeight = 50;
+    public MeshCollider col = null;
+    public float maxTime = 0.5f;
+    private float time = 0;
     [SerializeField] private List<Core> SelectedCores = new List<Core>();
+    [SerializeField] private Mesh currentDetectionMesh = null;
     private bool setToPatrol = false;
-    Vector2 uiPosition = Vector2.zero;
-
+    private Vector2[] uiMousePos = new Vector2[2];
 
     [Header("--UI Visualization")]
     public Image image = null;
@@ -44,17 +48,46 @@ public class InteractWithAIMovement : MonoBehaviour
         if (Input.GetKeyDown(CreateWaypointTrigger))
             CreateNewWaypoint();
 
+        #region Selection Detection
         if (Input.GetKeyDown(SelectionTrigger))
-        { }
+        {
+            uiMousePos[0] = Input.mousePosition;
+        }
+
         if (Input.GetKey(SelectionTrigger))
-        { }
-        if (Input.GetKeyUp(SelectionTrigger))
-        { }
+        {
+            uiMousePos[1] = Input.mousePosition;
+        }
+
+        if (Input.GetKeyUp(SelectionTrigger) && Vector2.Distance(uiMousePos[0], uiMousePos[1]) >= 10)
+        {
+            Vector2[] corners = GetBoundingBox(uiMousePos[0], uiMousePos[1]);
+
+            if (!Input.GetKey(KeepOldTrigger))
+                SelectedCores.Clear();
+
+            currentDetectionMesh = GenerateSelectionMesh(corners);
+            col.sharedMesh = currentDetectionMesh;
+        }
+        #endregion
 
         if (Type != AI.WaypointType.One_Way)
         {
             if (Input.GetKeyDown(KeyCode.Escape))
                 Type = AI.WaypointType.One_Way;
+        }
+
+        if (currentDetectionMesh != null)
+        {
+            time += Time.deltaTime;
+
+            if (time >= maxTime)
+            {
+                currentDetectionMesh = null;
+                col.sharedMesh = null;
+                time = 0;
+                uiMousePos = new Vector2[2];
+            }
         }
     }
 
@@ -65,7 +98,7 @@ public class InteractWithAIMovement : MonoBehaviour
         {
             RaycastHit hit;
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundMask))
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, detectionMask))
             {
                 if (Vector3.Angle(Vector3.up, hit.normal) <= 70)
                 {
@@ -156,31 +189,50 @@ public class InteractWithAIMovement : MonoBehaviour
         return result;
     }
 
-    private Mesh GenerateSelectionMesh(Vector3[] corners)
+    private Mesh GenerateSelectionMesh(Vector2[] corners)
     {
+        Ray[] rays = new Ray[4];
+        for (int i = 0; i < 4; i++)
+        {
+            rays[i] = cam.ScreenPointToRay(corners[i]);
+        }
+
+        float[] dist = new float[4];
+        RaycastHit hit;
+        for (int i = 0; i < 4; i++)
+        {
+            if (Physics.Raycast(rays[i], out hit, Mathf.Infinity, detectionMask, QueryTriggerInteraction.Collide))
+                dist[i] = hit.distance;
+        }
+
         Vector3[] verts = new Vector3[8];
         int[] tris = { 0, 1, 2, 2, 1, 3, 4, 6, 0, 0, 6, 2, 6, 7, 2, 2, 7, 3, 7, 5, 3, 3, 5, 1, 5, 0, 1, 1, 4, 0, 4, 5, 6, 6, 5, 7 };
 
         for (int i = 0; i < 4; i++)
-            verts[i] = corners[i];
-        for (int j = 4; j < 8; j++)
-            verts[j] = corners[j - 4] + transform.forward * checkBoxHeight;
+        {
+            creationTransform.position = rays[i].origin;
+            verts[i] = creationTransform.localPosition;
+        }
+
+        for (int i = 4; i < 8; i++)
+        {
+            creationTransform.position = rays[i - 4].origin + rays[i - 4].direction * dist[i - 4];
+            verts[i] = creationTransform.localPosition;
+        }
 
         Mesh result = new Mesh();
+        result.name = "Detection Mesh";
         result.vertices = verts;
         result.triangles = tris;
 
         return result;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
-        if (!Input.GetKey(KeepOldTrigger))
-            SelectedCores.Clear();
-
-        Core c = other.GetComponent<Core>();
-        if (other.GetComponent<Selectable>() != null && c != null)
-            SelectedCores.Add(c);
+        Core C = other.GetComponent<Core>();
+        if (C != null && !SelectedCores.Contains(C))
+            SelectedCores.Add(C);
     }
     #endregion
 

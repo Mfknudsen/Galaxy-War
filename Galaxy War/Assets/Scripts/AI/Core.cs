@@ -4,10 +4,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using AI;
 
-//temp
-using TMPro;
-using System.Net;
-
 namespace AI
 {
     public enum State { Idle, Walking, Partol, Fighting }
@@ -20,16 +16,16 @@ namespace AI
         [Header("Object Reference")]
         public bool CoreIsActive = false;
         public State State;
-        public AI.Director Director = null;
+        public Director Director = null;
         [HideInInspector] public int updateDelay = 1;
         [HideInInspector] public bool update = false, fixedUpdate = false;
 
-        private AI.Common Common = null;
+        private Common Common = null;
         [HideInInspector] public Vector3[] lookDirections = new Vector3[0];
 
         [Header("Movement")]
         public float checkDist = 0.2f;
-        public AI.WaypointType waypointType;
+        public WaypointType waypointType;
         public Transform[] wayPoints = new Transform[0];
         private Transform curWaypoint = null;
         private Transform lastWaypoint = null;
@@ -175,6 +171,11 @@ namespace AI
 
                 Agent.SetDestination(curWaypoint.position);
             }
+
+            if (!inCover)
+            {
+
+            }
         }
 
         private void PatrolUpdate()
@@ -199,6 +200,11 @@ namespace AI
                 curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
 
                 Agent.SetDestination(curWaypoint.position);
+            }
+
+            if (!inCover)
+            {
+
             }
         }
 

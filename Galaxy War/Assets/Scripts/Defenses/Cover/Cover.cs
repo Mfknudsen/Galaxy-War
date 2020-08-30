@@ -161,6 +161,8 @@ public class Cover : MonoBehaviour
 
                     activeCoverSpots.Add(obj);
                     usableCoverSpots.Add(obj);
+
+                    addition += checkSpotRadius * 2;
                 }
             }
 

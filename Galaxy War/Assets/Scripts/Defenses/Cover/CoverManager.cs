@@ -1,14 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class CoverManager : MonoBehaviour
 {
-    public List<Cover> Covers = new List<Cover>();
-    List<Cover> coversToUpdate = new List<Cover>();
-
+    [Header("Object Reference")]
     public bool setupComplete = false;
+    public List<Cover> Covers = new List<Cover>();
     private int index = 0;
+    private List<Cover> coversToUpdate = new List<Cover>();
+
 
     private void Start()
     {
@@ -41,5 +41,7 @@ public class CoverManager : MonoBehaviour
             if (coversToUpdate.Count == 0)
                 setupComplete = true;
         }
+        else if (coversToUpdate.Count != 0)
+            setupComplete = true;
     }
 }

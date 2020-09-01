@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using AI;
 
 namespace AI
 {
-    public enum State { Idle, Walking, Partol, Fighting }
+    public enum State { Idle, Walking, Partol, Fighting, Surviving }
 
     public class Core : MonoBehaviour
     {
@@ -15,15 +14,16 @@ namespace AI
 
         [Header("Object Reference")]
         public bool CoreIsActive = false;
-        public State State;
         public Director Director = null;
+        [SerializeField] private Common Common = null;
         [HideInInspector] public int updateDelay = 1;
         [HideInInspector] public bool update = false, fixedUpdate = false;
-
-        private Common Common = null;
         [HideInInspector] public Vector3[] lookDirections = new Vector3[0];
 
-        [Header("Movement")]
+        [Header("States :")]
+        public State State;
+
+        [Header(" - Movement")]
         public float checkDist = 0.2f;
         public WaypointType waypointType;
         public Transform[] wayPoints = new Transform[0];
@@ -31,27 +31,41 @@ namespace AI
         private Transform lastWaypoint = null;
         private NavMeshAgent Agent = null;
 
-        [Header("Sight")]
+        [Header(" - Sight")]
+        public Transform sightPos = null;
         public float sightRadius = 15;
         public float sightAngel = 50;
         public LayerMask terrainMask = 0, targetMask = 0;
-        private GameObject[] objInRadius = new GameObject[0];
+        [SerializeField] private GameObject[] objInRadius = new GameObject[0];
 
-        [Header("Cover")]
+        [Header(" - Interact")]
+        public float interactDist = 2;
+        public LayerMask interactMask = 0;
+        [SerializeField] private GameObject[] interactableObjectsInRange = new GameObject[0], interactableInSight = new GameObject[0];
+        [SerializeField] private GameObject selectedWeaponToTake = null;
+
+        [Header(" - Cover")]
         public LayerMask coverMask = 0;
         public float overideDist = 2.5f;
-        private bool inCover = false, foundCover = false, findCoverNow = false;
-        private Vector3 posToCheck = Vector3.zero;
         [SerializeField] private CoverSpot choosenCover = null;
-        private CoverSpot[] coversInRange = new CoverSpot[0];
+        [SerializeField] private CoverSpot[] coversInRange = new CoverSpot[0];
+        private bool inCover = false;
+        private Vector3 posToCheck = Vector3.zero;
+        private Vector3 checkedPos = Vector3.zero;
 
-        [Header("Fighting")]
-        public GameObject[] targableObjs = new GameObject[0];
-        public GameObject[] weaponsInInventory = new GameObject[3];
+        [Header(" - Fighting")]
+        public int inventorySize = 3;
+        public bool outOfAmmo = false;
+        public Weapon.WeaponType[] faveritWeaponTypes = new Weapon.WeaponType[0];
+        public Transform weaponHolder = null;
         public GameObject curWeapon = null;
+        public GameObject[] targableObjs = new GameObject[0];
+        public GameObject[] weaponsInInventory = new GameObject[0];
 
         private void Awake()
         {
+            weaponsInInventory = new GameObject[inventorySize];
+
             Director = GameObject.FindGameObjectWithTag("AI Director").GetComponent<Director>();
             Director.AddNewCore(this);
         }
@@ -96,6 +110,10 @@ namespace AI
                     case State.Fighting:
                         FightUpdate();
                         break;
+
+                    case State.Surviving:
+                        SurvivalUpdate();
+                        break;
                 }
             }
 
@@ -126,19 +144,33 @@ namespace AI
                 case State.Fighting:
                     FightingStateCheck();
                     break;
+
+                case State.Surviving:
+                    SurvivalStateCheck();
+                    break;
             }
         }
 
         private void ConstantUpdate()
         {
+            //
+            //Enemy targeting
             objInRadius = Common.CheckObjectsInRadius(transform.position, sightRadius, targetMask);
-            targableObjs = Common.UpdateInSight(transform, objInRadius, lookDirections, sightRadius, targetMask, sightAngel);
+            targableObjs = Common.UpdateInSight(sightPos, objInRadius, lookDirections, sightRadius, targetMask + terrainMask, sightAngel);
+
+            //
+            //Interaction
+            interactableObjectsInRange = Common.CheckObjectsInRadius(transform.position, sightRadius, interactMask);
+            interactableInSight = Common.UpdateInSight(sightPos, interactableObjectsInRange, lookDirections, sightRadius, interactMask + terrainMask, sightAngel);
         }
 
         #region UpdateState
         private void IdleUpdate()
         {
             StateText.text = "Idle";
+
+            Agent.isStopped = true;
+            Agent.SetDestination(transform.position);
         }
 
         private void WalkingUpdate()
@@ -172,9 +204,28 @@ namespace AI
                 Agent.SetDestination(curWaypoint.position);
             }
 
-            if (!inCover)
+            posToCheck = wayPoints[wayPoints.Length - 1].position;
+            if (posToCheck != checkedPos)
             {
+                CoverSpot[] spots = Common.FindCover(posToCheck, sightRadius, coverMask);
 
+                if (spots.Length != 0)
+                {
+                    choosenCover = Common.EvaluateCover(spots, objInRadius);
+
+                    wayPoints[wayPoints.Length - 1] = choosenCover.transform;
+                }
+
+                checkedPos = posToCheck;
+            }
+            else if (choosenCover != null)
+            {
+                if (Common.CheckDistanceToPoint(transform.position, choosenCover.transform.position, 0.1f))
+                {
+                    inCover = true;
+
+                    Agent.isStopped = true;
+                }
             }
         }
 
@@ -215,26 +266,71 @@ namespace AI
             if (!inCover)
             {
                 coversInRange = Common.FindCover(transform.position, sightRadius, coverMask);
+
                 if (coversInRange.Length > 0 && choosenCover == null)
                 {
-                    choosenCover = Common.EvaluateCover(coversInRange, targableObjs);
+                    CoverSpot checkSpot = Common.EvaluateCover(coversInRange, objInRadius);
 
-                    if (choosenCover != null)
+                    if (choosenCover != checkSpot)
                     {
-                        if (curWaypoint != choosenCover.transform)
+                        choosenCover = checkSpot;
+
+                        bool check = (curWaypoint == null);
+
+                        if (!check)
+                            check = curWaypoint != choosenCover.transform;
+
+                        if (check)
                         {
-                            choosenCover.CoverContainer.usableCoverSpots.Remove(choosenCover.gameObject);
+                            Cover coverContainer = choosenCover.CoverContainer;
+                            coverContainer.usableCoverSpots.Remove(choosenCover.gameObject);
                             curWaypoint = choosenCover.transform;
                             Agent.isStopped = false;
                             Agent.SetDestination(curWaypoint.position);
                         }
                     }
                 }
-                else if (coversInRange.Length > 0 && Common.CheckDistanceToPoint(transform.position, curWaypoint.position, 0.1f))
+                else if (choosenCover != null)
                 {
-                    Agent.isStopped = true;
-                    curWaypoint = null;
-                    inCover = true;
+                    if (Common.CheckDistanceToPoint(transform.position, choosenCover.transform.position, 0.1f))
+                    {
+                        inCover = true;
+                        Agent.isStopped = true;
+                    }
+                }
+            }
+        }
+
+        private void SurvivalUpdate()
+        {
+            StateText.text = "Survival";
+
+            // - Finding new weapon
+            if (selectedWeaponToTake == null && outOfAmmo)
+            {
+                selectedWeaponToTake = Common.FindBestWeapon(transform.position, interactableInSight, weaponsInInventory, faveritWeaponTypes);
+
+                if (selectedWeaponToTake != null)
+                {
+                    lastWaypoint = curWaypoint;
+                    curWaypoint = selectedWeaponToTake.transform;
+                    Agent.isStopped = false;
+                    Agent.SetDestination(curWaypoint.position);
+                }
+            }
+            else if (selectedWeaponToTake != null)
+            {
+                if (Common.CheckDistanceToPoint(transform.position, selectedWeaponToTake.transform.position, interactDist))
+                {
+                    Common.PickUpWeapon(this, selectedWeaponToTake.GetComponent<Weapon.WeaponHolder>());
+
+                    if (lastWaypoint != null)
+                    {
+                        curWaypoint = lastWaypoint;
+                        lastWaypoint = null;
+                        Agent.isStopped = false;
+                        Agent.SetDestination(curWaypoint.position);
+                    }
                 }
             }
         }
@@ -286,6 +382,26 @@ namespace AI
             {
                 State = State.Idle;
             }
+            else if (outOfAmmo)
+            {
+                State = State.Surviving;
+            }
+        }
+
+        private void SurvivalStateCheck()
+        {
+            foreach (GameObject obj in weaponsInInventory)
+            {
+                if (obj != null)
+                {
+                    Weapon.WeaponHolder h = obj.GetComponent<Weapon.WeaponHolder>();
+
+                    if (!h.isEmpty)
+                        outOfAmmo = false;
+                }
+            }
+            if (!outOfAmmo && targableObjs.Length > 0)
+                State = State.Fighting;
         }
         #endregion
 

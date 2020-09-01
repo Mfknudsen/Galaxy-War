@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 
 namespace AI
@@ -12,6 +11,7 @@ namespace AI
         #endregion
 
         #region Sight
+        //
         //Finding Attackable Targets:
         public Vector3[] GetSightDirections(int ViewDirectionCount)
         {
@@ -41,15 +41,23 @@ namespace AI
             List<GameObject> result = new List<GameObject>();
             int maxCount = 0, curCount = 0;
 
+            //Setting up how many objects the ai can see
+            if (angel != 0)
+            {
+                foreach (GameObject obj in objInRadius)
+                {
+                    if (Vector3.Angle((obj.transform.position - origin.position).normalized, origin.forward) <= angel + 5)
+                        maxCount++;
+                }
+            }
+            else
+                maxCount = objInRadius.Length;
+
+            //Check if the object is visible in the open
             foreach (GameObject obj in objInRadius)
             {
-                if (Vector3.Angle((obj.transform.position - origin.position).normalized, origin.forward) <= angel || angel == 0)
-                    maxCount++;
-            }
-
-            for (int i = 0; i < ViewDirection.Length; i++)
-            {
-                Vector3 dir = origin.TransformDirection(ViewDirection[i]);
+                Vector3 pos = obj.transform.position;
+                Vector3 dir = pos - origin.position;
 
                 if (Vector3.Angle(origin.forward, dir) <= angel || angel == 0)
                 {
@@ -57,23 +65,45 @@ namespace AI
                     RaycastHit hit;
                     if (Physics.Raycast(ray, out hit, dist, mask, QueryTriggerInteraction.Ignore))
                     {
-                        GameObject obj = hit.collider.gameObject;
-                        if (obj != null)
+                        if (hit.collider.gameObject == obj && !result.Contains(obj))
                         {
-                            if (!result.Contains(obj))
+                            Debug.DrawRay(origin.position, dir * hit.distance, Color.red);
+                            result.Add(obj);
+                            curCount++;
+                        }
+                    }
+                }
+            }
+
+            //Check if the object is stil visible behind cover
+            if (curCount != maxCount)
+            {
+                for (int i = 0; i < ViewDirection.Length; i++)
+                {
+                    Vector3 dir = origin.TransformDirection(ViewDirection[i]);
+
+                    if (Vector3.Angle(origin.forward, dir) <= angel || angel == 0)
+                    {
+                        Ray ray = new Ray(origin.position, dir);
+                        RaycastHit hit;
+                        if (Physics.Raycast(ray, out hit, dist, mask, QueryTriggerInteraction.Ignore))
+                        {
+                            GameObject obj = hit.collider.gameObject;
+
+                            if (objInRadius.Contains(obj) && !result.Contains(obj))
                             {
                                 Debug.DrawRay(origin.position, dir * hit.distance, Color.red);
                                 result.Add(obj);
                                 curCount++;
                             }
                         }
-
                     }
-                }
 
-                if (curCount == maxCount)
-                    break;
+                    if (curCount == maxCount)
+                        break;
+                }
             }
+
             return result.ToArray();
         }
 
@@ -95,6 +125,7 @@ namespace AI
             return false;
         }
 
+        //
         //Finding Cover:
         public CoverSpot[] FindCover(Vector3 pos, float dist, LayerMask coverMask)
         {
@@ -116,30 +147,106 @@ namespace AI
         {
             CoverSpot result = null;
             float curValue = 0;
+            int curTargetsHit = 0;
 
             foreach (CoverSpot cs in coversInRange)
             {
                 float value = 0;
+                int targetsHit = 0;
 
                 foreach (GameObject t in targets)
                 {
                     Vector3 dir = (t.transform.position - cs.transform.position).normalized;
 
-                    value += Vector3.Angle(cs.transform.forward, dir);
+                    float toAdd = Vector3.Angle(cs.transform.forward, dir);
+                    if (toAdd <= 75)
+                    {
+                        targetsHit++;
+                        value += toAdd;
+                    }
                 }
 
                 if (result == null)
                 {
                     curValue = value;
                     result = cs;
+                    curTargetsHit = targetsHit;
                 }
-                else if (value < curValue)
+                else if (value < curValue && value != 0 || targetsHit >= curTargetsHit)
                 {
+                    curTargetsHit = targetsHit;
                     curValue = value;
                     result = cs;
                 }
             }
 
+            return result;
+        }
+
+        //
+        //Finding Weapon:
+        public GameObject FindBestWeapon(Vector3 origin, GameObject[] objects, GameObject[] curInventory, Weapon.WeaponType[] faveredType)
+        {
+            GameObject result = null;
+            List<Weapon.WeaponSize> weaponSize = new List<Weapon.WeaponSize>() { Weapon.WeaponSize.Main, Weapon.WeaponSize.Sidearm, Weapon.WeaponSize.Melee };
+
+            //
+            //Setup missing sizes based on current inventory
+            foreach (GameObject obj in curInventory)
+            {
+                if (obj != null)
+                {
+                    Weapon.WeaponHolder curHolder = obj.GetComponent<Weapon.WeaponHolder>();
+                    Weapon.WeaponSize curSize = curHolder.weaponSize;
+                    if (weaponSize.Contains(curSize) && !curHolder.isEmpty)
+                        weaponSize.Remove(curSize);
+                }
+            }
+
+            //
+            //Check the current weapons in range based on their size
+            List<Weapon.WeaponHolder> holders = new List<Weapon.WeaponHolder>();
+            List<GameObject> toCheck = new List<GameObject>();
+
+            foreach (GameObject obj in objects)
+                holders.Add(obj.GetComponent<Weapon.WeaponHolder>());
+
+            for (int i = 0; i < weaponSize.Count; i++)
+            {
+                foreach (Weapon.WeaponHolder hold in holders)
+                {
+                    if (hold.weaponSize == weaponSize[i])
+                    {
+                        if (faveredType.Length > 0)
+                        {
+                            if (faveredType.Contains(hold.weaponType))
+                            {
+                                toCheck.Add(hold.gameObject);
+                            }
+                        }
+                        else
+                            toCheck.Add(hold.gameObject);
+                    }
+                }
+
+                if (toCheck.Count > 0)
+                    break;
+            }
+
+            //
+            //Deside what weapon to go for based on distance
+            float curDistance = 100;
+            foreach (GameObject obj in toCheck)
+            {
+                Vector3 dir = obj.transform.position - origin;
+                if (dir.magnitude < curDistance)
+                {
+                    result = obj;
+                    curDistance = dir.magnitude;
+                }
+            }
+
+            Debug.Log(result);
             return result;
         }
         #endregion
@@ -262,27 +369,31 @@ namespace AI
         #endregion
 
         #region Interaction
-        public bool InteractWithTarget(GameObject target)
+        public void PickUpWeapon(Core currentAI, Weapon.WeaponHolder currentHolder)
         {
-            InteractReciever reciever = target.GetComponent<InteractReciever>();
+            int i = currentHolder.weaponSize.GetHashCode();
 
-            if (reciever == null)
-                return false;
-            else
-                return reciever.GetInteraction();
+            if (currentAI.weaponsInInventory[i] != null)
+                DiscardWeapon(currentAI.weaponsInInventory[0], currentHolder.transform);
+            currentAI.weaponsInInventory[0] = currentHolder.gameObject;
+
+            if (!currentHolder.isEmpty)
+            {
+                currentAI.curWeapon = currentHolder.gameObject;
+                currentHolder.gameObject.transform.position = currentAI.weaponHolder.position;
+                currentHolder.gameObject.transform.rotation = currentAI.weaponHolder.rotation;
+                currentHolder.gameObject.transform.parent = currentAI.weaponHolder;
+                currentHolder.gameObject.GetComponent<BoxCollider>().enabled = false;
+
+                currentAI.outOfAmmo = false;
+            }
         }
 
-        public bool ShouldInteract(bool[] checklist)
+        public void DiscardWeapon(GameObject oldWeapon, Transform newPlacement)
         {
-            foreach (bool b in checklist)
-            {
-                if (!b)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            oldWeapon.transform.position = newPlacement.position;
+            oldWeapon.transform.rotation = newPlacement.rotation;
+            oldWeapon.transform.parent = newPlacement.parent;
         }
         #endregion
 

@@ -68,6 +68,7 @@
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
     <Compile Include="Assets\Scripts\AI\Common.cs" />
     <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
+    <Compile Include="Assets\Scripts\Weapons\WeaponHolder.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

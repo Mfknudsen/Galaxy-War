@@ -11,23 +11,26 @@ public class Cover : MonoBehaviour
     public GameObject CoverSpot = null;
     public bool done = false;
 
+    [Header("Coverspot Overview")]
     public List<GameObject> usableCoverSpots = new List<GameObject>();
     private List<GameObject> activeCoverSpots = new List<GameObject>();
 
-    public LayerMask terrainMask = 0;
+    [Header("Normal Detection")]
     public LayerMask coverMask = 0;
-    public LayerMask coverspotMask = 0;
-    public LayerMask dontOverlapMask = 0;
     public int checkRayCount = 120;
     public float checkNormalRadius = 0.5f;
-    public float checkSpotHeight = 2f, checkSpotRadius, heightOffset = 0.1f;
+    private List<Vector3> NormalDirections = new List<Vector3>();
+    private List<Vector3[]> CreationPoints = new List<Vector3[]>();
+    private int index = 0;
 
-    List<Vector3[]> CreationPoints = new List<Vector3[]>();
-    List<Vector3> NormalDirections = new List<Vector3>();
-    bool readyToCreateSpots = false;
-    int index = 0;
-    float addition = 0;
-    Vector3 lastCreate = Vector3.zero;
+    [Header("Coverspot Creation")]
+    public LayerMask terrainMask = 0;
+    public LayerMask coverspotMask = 0;
+    public LayerMask dontOverlapMask = 0;
+    public float checkSpotHeight = 2f, checkSpotRadius, heightOffset = 0.1f, maxExtraDist = 0.25f;
+    private bool readyToCreateSpots = false;
+    private Vector3 lastCreate = Vector3.zero;
+    private float addition = 0;
 
     public void UpdateCover()
     {
@@ -45,11 +48,11 @@ public class Cover : MonoBehaviour
                 }
             }
             else
-                SetUpCoverSpots();
+                SetupNormals();
         }
     }
 
-    private void SetUpCoverSpots()
+    private void SetupNormals()
     {
         float extent = 360 / checkRayCount;
         List<Vector3> hitPos = new List<Vector3>();
@@ -127,6 +130,8 @@ public class Cover : MonoBehaviour
 
     private void CreateCoverspots(Vector3[] points, Vector3 normal)
     {
+        bool hasCreated = false;
+
         if (points.Length > 0)
         {
             Vector3 dir = -Vector3.Cross(-normal, Vector3.up);
@@ -136,7 +141,7 @@ public class Cover : MonoBehaviour
             dist = Vector3.Distance(curPoint, endPoint);
             Vector3 checkPoint = curPoint + dir * addition;
 
-            if (lastCreate == Vector3.zero || Vector3.Distance(lastCreate, checkPoint) >= checkSpotRadius * 2 + 0.15f)
+            if (lastCreate == Vector3.zero || Vector3.Distance(lastCreate, checkPoint) >= checkSpotRadius * 2)
             {
                 RaycastHit hit;
                 if (Physics.Raycast(checkPoint, -Vector3.up, out hit, Mathf.Infinity, terrainMask, QueryTriggerInteraction.Ignore))
@@ -148,7 +153,7 @@ public class Cover : MonoBehaviour
                     checkPoint.y = hit.point.y + checkSpotRadius + heightOffset;
                 }
 
-                Collider[] colliders = Physics.OverlapCapsule(checkPoint, checkPoint + Vector3.up * checkSpotHeight, checkSpotRadius, dontOverlapMask, QueryTriggerInteraction.Ignore);
+                Collider[] colliders = Physics.OverlapCapsule(checkPoint, checkPoint + Vector3.up * checkSpotHeight, checkSpotRadius, dontOverlapMask, QueryTriggerInteraction.UseGlobal);
                 if (colliders.Length == 0)
                 {
                     lastCreate = checkPoint;
@@ -161,10 +166,14 @@ public class Cover : MonoBehaviour
 
                     activeCoverSpots.Add(obj);
                     usableCoverSpots.Add(obj);
+
+                    hasCreated = true;
+                    addition += (checkSpotRadius * 2) + Random.Range(0, maxExtraDist);
                 }
             }
 
-            addition += moveSpeed;
+            if (!hasCreated)
+                addition += moveSpeed;
 
             if (addition >= dist)
             {

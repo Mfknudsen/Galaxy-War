@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Commander\InteractWithAIMovement.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverManager.cs" />
+    <Compile Include="Assets\Scripts\Weapons\WeaponHolder.cs" />
     <Compile Include="Assets\Scripts\AI\Director.cs" />
     <Compile Include="Assets\Scripts\AI\Core.cs" />
     <Compile Include="Assets\Exampels\SimpleCameraController.cs" />
@@ -68,7 +69,6 @@
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
     <Compile Include="Assets\Scripts\AI\Common.cs" />
     <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
-    <Compile Include="Assets\Scripts\Weapons\WeaponHolder.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

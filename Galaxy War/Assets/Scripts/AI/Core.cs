@@ -390,16 +390,6 @@ namespace AI
 
         private void SurvivalStateCheck()
         {
-            foreach (GameObject obj in weaponsInInventory)
-            {
-                if (obj != null)
-                {
-                    Weapon.WeaponHolder h = obj.GetComponent<Weapon.WeaponHolder>();
-
-                    if (!h.isEmpty)
-                        outOfAmmo = false;
-                }
-            }
             if (!outOfAmmo && targableObjs.Length > 0)
                 State = State.Fighting;
         }

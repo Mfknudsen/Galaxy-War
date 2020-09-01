@@ -246,9 +246,12 @@ namespace AI
                 }
             }
 
-            Debug.Log(result);
             return result;
         }
+
+        //
+        //Finding Ammo:
+        public void 
         #endregion
 
         #region Movement
@@ -369,6 +372,11 @@ namespace AI
         #endregion
 
         #region Interaction
+        public void RetreiveAmmo()
+        {
+
+        }
+
         public void PickUpWeapon(Core currentAI, Weapon.WeaponHolder currentHolder)
         {
             int i = currentHolder.weaponSize.GetHashCode();

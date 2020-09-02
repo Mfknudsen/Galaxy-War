@@ -743,6 +743,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 1165985453}
   active: 1
+  scroolSpeed: 1
   moveSpeed: 20
   rotSpeed: 100
   controller: {fileID: 0}

@@ -320,7 +320,7 @@ namespace AI
             {
                 if (Common.CheckDistanceToPoint(transform.position, selectedWeaponToTake.transform.position, interactDist))
                 {
-                    Common.PickUpWeapon(this, selectedWeaponToTake.GetComponent<Weapon.WeaponHolder>());
+                    Common.PickUpWeapon(this, selectedWeaponToTake.GetComponent<Weapon.Common>());
 
                     if (lastWaypoint != null)
                     {

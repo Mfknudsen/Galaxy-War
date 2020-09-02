@@ -198,7 +198,7 @@ namespace AI
             {
                 if (obj != null)
                 {
-                    Weapon.WeaponHolder curHolder = obj.GetComponent<Weapon.WeaponHolder>();
+                    Weapon.Common curHolder = obj.GetComponent<Weapon.Common>();
                     Weapon.WeaponSize curSize = curHolder.weaponSize;
                     if (weaponSize.Contains(curSize) && !curHolder.isEmpty)
                         weaponSize.Remove(curSize);
@@ -207,15 +207,15 @@ namespace AI
 
             //
             //Check the current weapons in range based on their size
-            List<Weapon.WeaponHolder> holders = new List<Weapon.WeaponHolder>();
+            List<Weapon.Common> holders = new List<Weapon.Common>();
             List<GameObject> toCheck = new List<GameObject>();
 
             foreach (GameObject obj in objects)
-                holders.Add(obj.GetComponent<Weapon.WeaponHolder>());
+                holders.Add(obj.GetComponent<Weapon.Common>());
 
             for (int i = 0; i < weaponSize.Count; i++)
             {
-                foreach (Weapon.WeaponHolder hold in holders)
+                foreach (Weapon.Common hold in holders)
                 {
                     if (hold.weaponSize == weaponSize[i])
                     {
@@ -382,7 +382,7 @@ namespace AI
 
         }
 
-        public void PickUpWeapon(Core currentAI, Weapon.WeaponHolder currentHolder)
+        public void PickUpWeapon(Core currentAI, Weapon.Common currentHolder)
         {
             int i = currentHolder.weaponSize.GetHashCode();
 

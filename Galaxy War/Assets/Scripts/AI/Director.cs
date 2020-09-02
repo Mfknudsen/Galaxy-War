@@ -6,14 +6,14 @@ namespace AI
 {
     public enum WaypointType { One_Way, Patrol_FromTo, Patrol_Conteniusly }
 
-    public class Director : AI.Common
+    public class Director : Common
     {
         [Header("Object Reference")]
         public int Count = 0;
         public Core c;
-        [HideInInspector] public List<AI.Core> CoreInCloseRange;
-        [HideInInspector] public List<AI.Core> CoreInMediumRange;
-        [HideInInspector] public List<AI.Core> CoreInLongRange;
+        public List<Core> CoreInCloseRange;
+        public List<Core> CoreInMediumRange;
+        public List<Core> CoreInLongRange;
 
         [Header("Distance")]
         public Transform Player;

@@ -5,8 +5,6 @@ using UnityEngine.AI;
 
 namespace AI
 {
-    public enum State { Idle, Walking, Partol, Fighting, Surviving }
-
     public class Core : MonoBehaviour
     {
         [Header("Dev")]
@@ -27,9 +25,9 @@ namespace AI
         public float checkDist = 0.2f;
         public WaypointType waypointType;
         public Transform[] wayPoints = new Transform[0];
+        [HideInInspector] public NavMeshAgent Agent = null;
         private Transform curWaypoint = null;
         private Transform lastWaypoint = null;
-        private NavMeshAgent Agent = null;
 
         [Header(" - Sight")]
         public Transform sightPos = null;
@@ -391,7 +389,9 @@ namespace AI
         private void SurvivalStateCheck()
         {
             if (!outOfAmmo && targableObjs.Length > 0)
+            {
                 State = State.Fighting;
+            }
         }
         #endregion
 

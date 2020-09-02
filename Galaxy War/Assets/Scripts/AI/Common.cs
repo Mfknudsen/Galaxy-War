@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace AI
 {
+    public enum State { Idle, Walking, Partol, Fighting, Surviving }
+
     public class Common : MonoBehaviour
     {
         #region GlobalValues
@@ -258,7 +260,7 @@ namespace AI
         #endregion
 
         #region Movement
-        public Transform GetNextWaypoint(Transform[] waypoints, Transform currentGoal, AI.WaypointType type)
+        public Transform GetNextWaypoint(Transform[] waypoints, Transform currentGoal, WaypointType type)
         {
             int count = waypoints.Length;
 

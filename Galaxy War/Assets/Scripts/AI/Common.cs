@@ -251,7 +251,10 @@ namespace AI
 
         //
         //Finding Ammo:
-        public void 
+        public void FindAmmo()
+        {
+
+        }
         #endregion
 
         #region Movement

@@ -51,7 +51,7 @@ namespace Weapon
         #endregion
 
         #region CreateShot
-        public GameObject SelectAmmoInstantiation(AmmoType type, Transform origin, Transform parent, float speed)
+        public GameObject SelectAmmoInstantiation(AmmoType type, Transform origin, Transform parent, float? speed = 0)
         {
             GameObject result = null;
 
@@ -65,7 +65,7 @@ namespace Weapon
             return result;
         }
 
-        public GameObject InstantiateBullet(GameObject prefab, Transform origin, Transform parent, float speed)
+        public GameObject InstantiateBullet(GameObject prefab, Transform origin, Transform parent, float? speed = 0)
         {
             GameObject obj = Instantiate(prefab);
             obj.transform.position = origin.position;
@@ -73,12 +73,13 @@ namespace Weapon
             obj.transform.parent = parent;
 
             Bullet b = obj.GetComponent<Bullet>();
-            b.speed = speed;
+            if (speed != 0)
+                b.speed = speed.GetValueOrDefault();
 
             return obj;
         }
 
-        public GameObject InstantiateFlame(GameObject prefab, Transform origin, Transform parent)
+        public GameObject InstantiateFlame(GameObject prefab, Transform origin, Transform parent, float? spped = 0)
         {
             GameObject obj = Instantiate(prefab);
             obj.transform.position = origin.position;
@@ -88,7 +89,7 @@ namespace Weapon
             return obj;
         }
 
-        public GameObject InstantiateThunder(GameObject prefab, Transform origin, Transform parent)
+        public GameObject InstantiateThunder(GameObject prefab, Transform origin, Transform parent, float? speed = 0)
         {
             GameObject obj = Instantiate(prefab);
             obj.transform.position = origin.position;

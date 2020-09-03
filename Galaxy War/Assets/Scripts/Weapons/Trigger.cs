@@ -38,20 +38,19 @@ namespace Weapon
         #endregion
 
         #region Player Trigger
-        private void Update()
+        public void Update()
         {
             if (playerUse)
             {
                 if (mainType != TriggerType.FullAuto)
-                {
                     mainFire = Input.GetKeyDown(triggerOne);
-                    secondaryFire = Input.GetKeyDown(triggerTwo);
-                }
                 else
-                {
                     mainFire = Input.GetKey(triggerOne);
+
+                if (secondaryType != TriggerType.FullAuto)
+                    secondaryFire = Input.GetKeyDown(triggerTwo);
+                else
                     secondaryFire = Input.GetKey(triggerTwo);
-                }
             }
         }
         #endregion

@@ -6,6 +6,37 @@ namespace Weapon
 {
     public class Bullet : MonoBehaviour
     {
-        public float speed = 1;
+        [Header("Object Reference")]
+        public LayerMask hitLayer = 0;
+        public float speed = 50, grav = -9.81f;
+        private Vector3 dirForce = Vector3.zero, gravForce = Vector3.zero;
+
+        public void startBullet(float? newSpeed = 50)
+        {
+            speed = newSpeed.GetValueOrDefault();
+
+            dirForce = transform.forward * speed;
+        }
+
+        private void Update()
+        {
+            transform.position += (dirForce + gravForce) * Time.deltaTime;
+
+            gravForce += transform.up * grav * Time.deltaTime;
+        }
+
+        private void HitObject(GameObject obj)
+        {
+
+            Destroy(gameObject);
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.gameObject.layer == 1 << hitLayer)
+            {
+                HitObject(collision.gameObject);
+            }
+        }
     }
 }

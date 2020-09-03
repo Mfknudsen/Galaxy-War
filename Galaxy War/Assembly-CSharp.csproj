@@ -55,12 +55,16 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Weapons\Types\Shotgun.cs" />
     <Compile Include="Assets\Scripts\Commander\CommanderCore.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Trigger.cs" />
     <Compile Include="Assets\Scripts\Commander\InteractWithAIMovement.cs" />
     <Compile Include="Assets\Scripts\Commander\Movement.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverManager.cs" />
     <Compile Include="Assets\Scripts\Weapons\Common.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Types\Knife.cs" />
     <Compile Include="Assets\Scripts\AI\Director.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Types\Pistol.cs" />
     <Compile Include="Assets\Scripts\AI\Core.cs" />
     <Compile Include="Assets\Exampels\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\_Common\WeaponReciever.cs" />
@@ -68,16 +72,16 @@
     <Compile Include="Assets\Scripts\Defenses\Cover\Cover.cs" />
     <Compile Include="Assets\Scripts\_Common\InteractReciever.cs" />
     <Compile Include="Assets\Scripts\_Common\Settings\UI_Rescaler.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Types\SniperRifle.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
     <Compile Include="Assets\Scripts\AI\Common.cs" />
-    <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Trigger.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Types\Pistol.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Types\SniperRifle.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Types\Shotgun.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Types\Knife.cs" />
     <Compile Include="Assets\Scripts\Weapons\Types\AssaultRifle.cs" />
     <Compile Include="Assets\Scripts\Weapons\Ammo\Bullet.cs" />
+    <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
+    <Compile Include="Assets\Scripts\Health\Common.cs" />
+    <Compile Include="Assets\Scripts\Health\Receiver.cs" />
+    <Compile Include="Assets\Scripts\Health\Damage.cs" />
+    <Compile Include="Assets\Scripts\Health\Life.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

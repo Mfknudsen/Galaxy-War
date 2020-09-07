@@ -9,6 +9,7 @@ namespace Elevator
 
     public class Elevator : MonoBehaviour
     {
+        #region Values
         [Header("Object Reference:")]
         public State state = 0;
         public Detector detect = null;
@@ -53,6 +54,7 @@ namespace Elevator
         public float[] zonesRadius = new float[0];
         private List<bool[]> isPointUsed = new List<bool[]>();
         private List<Transform[]> UseableWaitZonePoints = new List<Transform[]>();
+        #endregion
 
         private void Awake()
         {
@@ -129,10 +131,6 @@ namespace Elevator
             }
         }
 
-        public void ChangeNextLevel(int newLevel)
-        {
-            curLevel = newLevel;
-        }
 
         #region Setup
         private void SetupOffMeshLink()
@@ -283,6 +281,11 @@ namespace Elevator
         #endregion
 
         #region Interaction
+        public void ChangeNextLevel(int newLevel)
+        {
+            curLevel = newLevel;
+        }
+
         public int GetExitLevel(int entry, Vector3 endPoint)
         {
             int i = entry;

@@ -12,12 +12,14 @@ namespace Elevator
 
         private void OnTriggerEnter(Collider other)
         {
-            onPlatform.Add(other.gameObject);
+            if (!other.GameObject.isStatic)
+                onPlatform.Add(other.gameObject);
         }
 
         private void OnTriggerExit(Collider other)
         {
-            onPlatform.Remove(other.gameObject);
+            if (onPlatform.Contains(other.gameObject))
+                onPlatform.Remove(other.gameObject);
         }
     }
 }

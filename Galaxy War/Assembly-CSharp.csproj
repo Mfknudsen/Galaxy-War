@@ -70,9 +70,11 @@
     <Compile Include="Assets\Scripts\AI\Director.cs" />
     <Compile Include="Assets\Scripts\Weapons\Types\Pistol.cs" />
     <Compile Include="Assets\Scripts\AI\Core.cs" />
+    <Compile Include="Assets\Scripts\Squad\Core.cs" />
     <Compile Include="Assets\Exampels\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\Health\Life.cs" />
     <Compile Include="Assets\Scripts\_Common\WeaponReciever.cs" />
+    <Compile Include="Assets\Scripts\Buildings\Elevator\Detector.cs" />
     <Compile Include="Assets\Scripts\AI\NavigationCalculations.cs" />
     <Compile Include="Assets\Scripts\Health\Damage.cs" />
     <Compile Include="Assets\Scripts\_Common\Waypoint.cs" />
@@ -84,14 +86,12 @@
     <Compile Include="Assets\Scripts\Weapons\Types\SniperRifle.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
     <Compile Include="Assets\Scripts\AI\Common.cs" />
+    <Compile Include="Assets\Scripts\Squad\Common.cs" />
     <Compile Include="Assets\Scripts\Weapons\Types\AssaultRifle.cs" />
     <Compile Include="Assets\Scripts\Buildings\Elevator\Elevator.cs" />
     <Compile Include="Assets\Scripts\Weapons\Ammo\Bullet.cs" />
     <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
     <Compile Include="Assets\Scripts\Systems\NavmeshDirector.cs" />
-    <Compile Include="Assets\Scripts\Squad\Core.cs" />
-    <Compile Include="Assets\Scripts\Squad\Common.cs" />
-    <Compile Include="Assets\Scripts\Buildings\Elevator\Detector.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

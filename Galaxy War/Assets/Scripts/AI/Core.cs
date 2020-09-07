@@ -7,10 +7,10 @@ namespace AI
 {
     public class Core : MonoBehaviour
     {
-        [Header("Dev")]
+        [Header("Dev:")]
         public TextMesh StateText;
 
-        [Header("Object Reference")]
+        [Header("Object Reference:")]
         public bool CoreIsActive = false;
         public Director Director = null;
         [SerializeField] private Common Common = null;
@@ -18,10 +18,14 @@ namespace AI
         [HideInInspector] public bool update = false, fixedUpdate = false;
         [HideInInspector] public Vector3[] lookDirections = new Vector3[0];
 
-        [Header("States :")]
+        [Header("Squad:")]
+        public Squad.Core currentSquad = null;
+
+        [Header("States:")]
         public State State;
 
         [Header(" - Movement")]
+        public float moveSpeed = 1;
         public float checkDist = 0.2f;
         public WaypointType waypointType;
         public Transform[] wayPoints = new Transform[0];
@@ -60,22 +64,38 @@ namespace AI
         public GameObject[] targableObjs = new GameObject[0];
         public GameObject[] weaponsInInventory = new GameObject[0];
 
+        [Header(" - Elevator Use")]
+        public bool toUseElevator = false;
+        public ElevateUseState useState = 0;
+        public Elevator.Elevator mainPart = null;
+        private Transform resumePoint = null;
+        private int entry = 0, exit = 0;
+        private Elevator.MeshLinkDetector entryLinkDetector = null;
+
         private void Awake()
         {
             weaponsInInventory = new GameObject[inventorySize];
 
             Director = GameObject.FindGameObjectWithTag("AI Director").GetComponent<Director>();
             Director.AddNewCore(this);
+
+            transform.parent = currentSquad.transform;
+            currentSquad.members[0] = gameObject;
         }
 
         public void StartCore(Vector3[] dir)
         {
             lookDirections = dir;
+
             if (!CoreIsActive)
             {
                 Common = gameObject.AddComponent<Common>();
+
                 Agent = gameObject.AddComponent<NavMeshAgent>();
                 Agent.isStopped = false;
+                Agent.speed = moveSpeed;
+                Agent.autoTraverseOffMeshLink = false;
+
                 CoreIsActive = true;
             }
         }
@@ -112,6 +132,10 @@ namespace AI
                     case State.Surviving:
                         SurvivalUpdate();
                         break;
+
+                    case State.UseElevator:
+                        ElevatorUseUpdate();
+                        break;
                 }
             }
 
@@ -146,6 +170,10 @@ namespace AI
                 case State.Surviving:
                     SurvivalStateCheck();
                     break;
+
+                case State.UseElevator:
+                    ElevatorUseCheck();
+                    break;
             }
         }
 
@@ -160,6 +188,35 @@ namespace AI
             //Interaction
             interactableObjectsInRange = Common.CheckObjectsInRadius(transform.position, sightRadius, interactMask);
             interactableInSight = Common.UpdateInSight(sightPos, interactableObjectsInRange, lookDirections, sightRadius, interactMask + terrainMask, sightAngel);
+
+            //
+            //Next OffMeshLink is part of an Elevator
+            if (State == State.Walking || State == State.Partol && entryLinkDetector == null)
+            {
+                OffMeshLink link = Agent.nextOffMeshLinkData.offMeshLink;
+
+                if (link != null)
+                {
+                    entryLinkDetector = link.gameObject.GetComponent<Elevator.MeshLinkDetector>().Avaiable(currentSquad);
+
+                    if (entryLinkDetector != null)
+                    {
+                        entry = entryLinkDetector.entryLevel;
+
+                        if (link.endTransform.gameObject != null)
+                        {
+                            if (entryLinkDetector != null)
+                            {
+                                exit = entryLinkDetector.main.GetExitLevel(entry, link.endTransform.position);
+                                mainPart = entryLinkDetector.main;
+                                toUseElevator = true;
+                            }
+                            else
+                                entry = 0;
+                        }
+                    }
+                }
+            }
         }
 
         #region UpdateState
@@ -332,6 +389,40 @@ namespace AI
                 }
             }
         }
+
+        private void ElevatorUseUpdate()
+        {
+            switch (useState)
+            {
+                case ElevateUseState.Null:
+                    Agent.isStopped = true;
+                    resumePoint = curWaypoint;
+                    curWaypoint = null;
+
+                    useState = ElevateUseState.Waiting;
+
+                    break;
+
+                case ElevateUseState.Waiting:
+                    if (!mainPart.floorsToVisit.Contains(entry))
+                        mainPart.floorsToVisit.Add(entry);
+
+                    mainPart.AllowSquadsIn(entry, currentSquad);
+
+                    if (mainPart.onPlatform.Contains(currentSquad))
+                        useState = ElevateUseState.Enter;
+                    break;
+
+                case ElevateUseState.Enter:
+                    break;
+
+                case ElevateUseState.Use:
+                    break;
+
+                case ElevateUseState.Exit:
+                    break;
+            }
+        }
         #endregion
 
         #region SwitchState
@@ -356,6 +447,9 @@ namespace AI
                 State = State.Fighting;
             if (wayPoints.Length == 0)
                 State = State.Idle;
+
+            if (entryLinkDetector != null && Agent.currentOffMeshLinkData.offMeshLink == entryLinkDetector)
+                State = State.UseElevator;
         }
 
         private void PatrolStateCheck()
@@ -367,10 +461,17 @@ namespace AI
                 curWaypoint = null;
                 Agent.isStopped = true;
             }
+
             if (wayPoints.Length == 0)
             {
                 State = State.Idle;
                 curWaypoint = null;
+            }
+
+            if (Agent.currentOffMeshLinkData.offMeshLink != null && entryLinkDetector != null)
+            {
+                if (entryLinkDetector != null && Agent.currentOffMeshLinkData.offMeshLink.gameObject == entryLinkDetector.gameObject)
+                    State = State.UseElevator;
             }
         }
 
@@ -392,6 +493,11 @@ namespace AI
             {
                 State = State.Fighting;
             }
+        }
+
+        private void ElevatorUseCheck()
+        {
+
         }
         #endregion
 

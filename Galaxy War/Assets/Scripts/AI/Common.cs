@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace AI
 {
-    public enum State { Idle, Walking, Partol, Fighting, Surviving, WaitingForElevator }
+    public enum State { Idle, Walking, Partol, Fighting, Surviving, UseElevator }
+    public enum ElevateUseState { Null, Waiting, Enter, Use, Exit }
 
     public class Common : MonoBehaviour
     {

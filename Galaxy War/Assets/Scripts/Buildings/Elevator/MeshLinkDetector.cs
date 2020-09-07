@@ -30,13 +30,5 @@ namespace Elevator
 
             return null;
         }
-
-        public void AllowEntry(int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-
-            }
-        }
     }
 }

@@ -9,18 +9,19 @@ namespace Elevator
 
     public class Elevator : MonoBehaviour
     {
-        [Header("Object Reference")]
+        [Header("Object Reference:")]
         public State state = 0;
         public Detector detect = null;
         public Transform platform = null;
         public bool active = true;
 
-        [Header("Squad")]
+        [Header("Squad:")]
         public int squadCapacity = 1;
         public int curSquadCount = 0;
-        public List<List<Squad.Core>> waitList = new List<List<Squad.Core>>();
+        public List<Squad.Core> onPlatform = new List<Squad.Core>();
 
-        [Header("Levels")]
+
+        [Header("Levels:")]
         public float platformSpeed = 1;
         public Transform[] levelTransforms = new Transform[0];
         public NavMeshLink[] navLinkObjs = new NavMeshLink[0];
@@ -28,23 +29,45 @@ namespace Elevator
         [SerializeField] private int nextLevel = 0;
         private int curLevel = 0;
 
-        [Header(" - Navigation")]
+        [Header(" - Navigation:")]
+        public float randomNavDist = 1;
+        public LayerMask elevatorMask = 0;
+        public Transform navTransform = null;
         public bool setupDone = false;
         public GameObject[] prefabs = new GameObject[2];
         public GameObject[] linkPoints = new GameObject[0];
 
-        [Header(" - Door Values")]
+        [Header(" - Door Values:")]
         public float doorSpeed = 1;
         public GameObject[] doors = new GameObject[0];
         public Transform[] closedPoints = new Transform[0];
         public Transform[] openPoints = new Transform[0];
 
+        [Header(" - Direction:")]
+        public bool up = true;
+        public List<int> floorsToVisit = new List<int>();
+
+        [Header(" - WaitZone")]
+        public LayerMask coverMask = 0;
+        public int[] pointCount = new int[0];
+        public float[] zonesRadius = new float[0];
+        private List<bool[]> isPointUsed = new List<bool[]>();
+        private List<Transform[]> UseableWaitZonePoints = new List<Transform[]>();
+
         private void Awake()
         {
+            foreach (GameObject obj in linkPoints)
+            {
+                MeshLinkDetector d = obj.GetComponent<MeshLinkDetector>();
+                d.main = this;
+                d.maxSquadCount = squadCapacity;
+            }
+
             detect = platform.GetChild(0).GetComponent<Detector>();
             detect.elev = this;
 
             SetupOffMeshLink();
+            SetupWaitZone();
 
             for (int i = 0; i < navLinkObjs.Length; i++)
                 navLinkObjs[i].gameObject.GetComponent<MeshLinkDetector>().entryLevel = i;
@@ -69,6 +92,11 @@ namespace Elevator
                         navLinkObjs[curLevel].enabled = true;
                         navLinkActive = true;
                     }
+                    else if (onPlatform.Count == 0 && levelTransforms[curLevel].GetComponentInChildren<MeshLinkDetector>().inWait.Count == 0)
+                    {
+                        CheckVisitList();
+                    }
+
                     break;
 
                 //
@@ -104,11 +132,6 @@ namespace Elevator
         public void ChangeNextLevel(int newLevel)
         {
             curLevel = newLevel;
-        }
-
-        private void MovePlatform()
-        {
-            platform.position += (levelTransforms[nextLevel].position - levelTransforms[curLevel].position).normalized * platformSpeed * Time.deltaTime;
         }
 
         #region Setup
@@ -159,6 +182,39 @@ namespace Elevator
                 }
             }
         }
+
+        private void SetupWaitZone()
+        {
+            pointCount = new int[zonesRadius.Length];
+
+            for (int i = 0; i < zonesRadius.Length; i++)
+            {
+                List<Transform> spots = new List<Transform>();
+                Collider[] cols = Physics.OverlapSphere(linkPoints[i].transform.position, zonesRadius[i], coverMask, QueryTriggerInteraction.Collide);
+
+                foreach (Collider c in cols)
+                {
+                    CoverSpot spot = c.GetComponent<CoverSpot>();
+
+                    if (spot != null)
+                        spots.Add(spot.transform);
+                }
+
+                UseableWaitZonePoints.Add(spots.ToArray());
+                isPointUsed.Add(new bool[spots.Count]);
+
+                pointCount[i] = spots.Count;
+            }
+        }
+
+        private void CheckVisitList()
+        {
+            if (floorsToVisit.Count > 0)
+            {
+                nextLevel = floorsToVisit[0];
+                floorsToVisit.Remove(nextLevel);
+            }
+        }
         #endregion
 
         #region Door
@@ -201,34 +257,79 @@ namespace Elevator
         }
         #endregion
 
-        #region Interaction
-        public void AddToWaitList(Squad.Core newCore, int levelEntry, bool? priority)
+        #region Platform
+        private void MovePlatform()
         {
-            if (levelEntry >= 0 && levelEntry <= waitList.Count - 1)
+            platform.position += (levelTransforms[nextLevel].position - levelTransforms[curLevel].position).normalized * platformSpeed * Time.deltaTime;
+        }
+
+        public Transform GetPlatformWayPoint()
+        {
+            Transform result = null;
+            Vector3 randomDir = Random.insideUnitSphere * randomNavDist;
+
+            NavMeshHit navHit;
+            NavMesh.SamplePosition(randomDir, out navHit, randomNavDist, elevatorMask);
+
+            if (navHit.normal != Vector3.zero)
             {
-                if (!waitList[levelEntry].Contains(newCore) && (!priority.HasValue || priority.Value != true))
-                    waitList[levelEntry].Add(newCore);
-                else
+                Vector3 final = new Vector3(navHit.position.x, navHit.position.y + 1, navHit.position.z);
+                navTransform.position = final;
+                result = navTransform;
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region Interaction
+        public int GetExitLevel(int entry, Vector3 endPoint)
+        {
+            int i = entry;
+
+            for (int j = 0; j < linkPoints.Length; j++)
+            {
+                GameObject obj = linkPoints[j];
+
+                if (obj.transform.position == endPoint)
+                    return obj.GetComponent<MeshLinkDetector>().entryLevel;
+            }
+
+            return i;
+        }
+        #endregion
+
+        #region Decission
+        public bool AllowSquadsIn(int level, Squad.Core squadCore)
+        {
+            if (level == curLevel && !onPlatform.Contains(squadCore) && state == State.Open)
+            {
+                onPlatform.Add(squadCore);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void AllSquadsIsInside()
+        {
+            for (int i = 0; i < onPlatform.Count; i++)
+            {
+                foreach (GameObject obj in onPlatform[i].members)
                 {
-                    for (int i = 0; i < waitList[levelEntry].Count; i++)
-                    {
-                        if (!waitList[levelEntry][i].containsPlayer && !waitList[levelEntry].Contains(newCore))
-                            waitList[levelEntry].Add(newCore);
-                    }
+
                 }
             }
         }
+        #endregion
 
-        public void RemoveFromWaitList(Squad.Core oldCore)
+        #region WaitZone
+        public Transform GetWaitZonePoint()
         {
-            foreach (List<Squad.Core> list in waitList)
-            {
-                if (list.Contains(oldCore))
-                {
-                    list.Remove(oldCore);
-                    break;
-                }
-            }
+            Transform result = null;
+
+            return result;
         }
         #endregion
     }

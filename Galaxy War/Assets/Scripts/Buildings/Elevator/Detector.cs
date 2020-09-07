@@ -8,15 +8,16 @@ namespace Elevator
     {
         public Elevator elev = null;
         public LayerMask detectionMask = 0;
+        public List<GameObject> onPlatform = new List<GameObject>();
 
         private void OnTriggerEnter(Collider other)
         {
-
+            onPlatform.Add(other.gameObject);
         }
 
         private void OnTriggerExit(Collider other)
         {
-
+            onPlatform.Remove(other.gameObject);
         }
     }
 }

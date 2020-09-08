@@ -20,6 +20,7 @@ namespace AI
 
         [Header("Squad:")]
         public Squad.Core currentSquad = null;
+        public bool isLeader = false;
 
         [Header("States:")]
         public State State;
@@ -27,11 +28,8 @@ namespace AI
         [Header(" - Movement")]
         public float moveSpeed = 1;
         public float checkDist = 0.2f;
-        public WaypointType waypointType;
-        public Transform[] wayPoints = new Transform[0];
         [HideInInspector] public NavMeshAgent Agent = null;
-        private Transform curWaypoint = null;
-        private Transform lastWaypoint = null;
+        public Vector3 curWaypoint = Vector3.zero;
 
         [Header(" - Sight")]
         public Transform sightPos = null;
@@ -68,12 +66,14 @@ namespace AI
         public bool toUseElevator = false;
         public ElevateUseState useState = 0;
         public Elevator.Elevator mainPart = null;
-        private Transform resumePoint = null;
+        private Vector3 resumePoint = Vector3.zero;
         private int entry = 0, exit = 0;
         private Elevator.MeshLinkDetector entryLinkDetector = null;
 
         private void Awake()
         {
+            Common = ScriptableObject.CreateInstance("AI.Common") as AI.Common; ;
+
             weaponsInInventory = new GameObject[inventorySize];
 
             Director = GameObject.FindGameObjectWithTag("AI Director").GetComponent<Director>();
@@ -89,8 +89,6 @@ namespace AI
 
             if (!CoreIsActive)
             {
-                Common = gameObject.AddComponent<Common>();
-
                 Agent = gameObject.AddComponent<NavMeshAgent>();
                 Agent.isStopped = false;
                 Agent.speed = moveSpeed;
@@ -203,86 +201,89 @@ namespace AI
         {
             StateText.text = "Walking";
 
-            if (curWaypoint == null && lastWaypoint != null)
-            {
-                curWaypoint = lastWaypoint;
-                Agent.isStopped = false;
-                Agent.SetDestination(curWaypoint.position);
-            }
-            else if (curWaypoint == null)
-            {
-                Agent.isStopped = false;
-                curWaypoint = wayPoints[0];
-                Agent.SetDestination(curWaypoint.position);
-            }
+            /* if (curWaypoint == null && lastWaypoint != null)
+             {
+                 curWaypoint = lastWaypoint;
+                 Agent.isStopped = false;
+                 Agent.SetDestination(curWaypoint);
+             }
+             else if (curWaypoint == null)
+             {
+                 Agent.isStopped = false;
+                 curWaypoint = wayPoints[0];
+                 Agent.SetDestination(curWaypoint);
+             }
 
-            if (wayPoints.Length != 0)
-            {
-                if (Common.CheckDistanceToPoint(transform.position, curWaypoint.position, checkDist))
-                {
-                    lastWaypoint = curWaypoint;
-                    curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
+             if (wayPoints.Length != 0)
+             {
+                 if (Common.CheckDistanceToPoint(transform.position, curWaypoint, checkDist))
+                 {
+                     lastWaypoint = curWaypoint;
+                     curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
 
-                    wayPoints = Common.RemovePosition(wayPoints, lastWaypoint);
-                    lastWaypoint = null;
-                }
+                     wayPoints = Common.RemovePosition(wayPoints, lastWaypoint);
+                     lastWaypoint = Vector3.zero;
+                 }
 
-                Agent.SetDestination(curWaypoint.position);
-            }
+                 Agent.SetDestination(curWaypoint);
+             }
 
-            posToCheck = wayPoints[wayPoints.Length - 1].position;
-            if (posToCheck != checkedPos)
-            {
-                CoverSpot[] spots = Common.FindCover(posToCheck, sightRadius, coverMask);
+             posToCheck = wayPoints[wayPoints.Length - 1];
+             if (posToCheck != checkedPos)
+             {
+                 CoverSpot[] spots = Common.FindCover(posToCheck, sightRadius, coverMask);
 
-                if (spots.Length != 0)
-                {
-                    choosenCover = Common.EvaluateCover(spots, objInRadius);
+                 if (spots.Length != 0)
+                 {
+                     choosenCover = Common.EvaluateCover(spots, objInRadius);
 
-                    wayPoints[wayPoints.Length - 1] = choosenCover.transform;
-                }
+                     wayPoints[wayPoints.Length - 1] = choosenCover.transform.position;
+                 }
 
-                checkedPos = posToCheck;
-            }
-            else if (choosenCover != null)
-            {
-                if (Common.CheckDistanceToPoint(transform.position, choosenCover.transform.position, 0.1f))
-                {
-                    inCover = true;
+                 checkedPos = posToCheck;
+             }
+             else if (choosenCover != null)
+             {
+                 if (Common.CheckDistanceToPoint(transform.position, choosenCover.transform.position, 0.1f))
+                 {
+                     inCover = true;
 
-                    Agent.isStopped = true;
-                }
-            }
+                     Agent.isStopped = true;
+                 }
+             } 
+            */
         }
 
         private void PatrolUpdate()
         {
             StateText.text = "Patrol";
 
+            /*
             if (curWaypoint == null && lastWaypoint != null)
             {
                 curWaypoint = lastWaypoint;
                 Agent.isStopped = false;
-                Agent.SetDestination(curWaypoint.position);
+                Agent.SetDestination(curWaypoint);
             }
             else if (curWaypoint == null)
             {
                 Agent.isStopped = false;
                 curWaypoint = wayPoints[0];
-                Agent.SetDestination(curWaypoint.position);
+                Agent.SetDestination(curWaypoint);
             }
 
-            if (Common.CheckDistanceToPoint(transform.position, curWaypoint.position, checkDist))
+            if (Common.CheckDistanceToPoint(transform.position, curWaypoint, checkDist))
             {
                 curWaypoint = Common.GetNextWaypoint(wayPoints, curWaypoint, waypointType);
 
-                Agent.SetDestination(curWaypoint.position);
+                Agent.SetDestination(curWaypoint);
             }
 
             if (!inCover)
             {
 
             }
+            */
         }
 
         private void FightUpdate()
@@ -304,15 +305,15 @@ namespace AI
                         bool check = (curWaypoint == null);
 
                         if (!check)
-                            check = curWaypoint != choosenCover.transform;
+                            check = curWaypoint != choosenCover.transform.position;
 
                         if (check)
                         {
                             Cover coverContainer = choosenCover.CoverContainer;
                             coverContainer.usableCoverSpots.Remove(choosenCover.gameObject);
-                            curWaypoint = choosenCover.transform;
+                            curWaypoint = choosenCover.transform.position;
                             Agent.isStopped = false;
-                            Agent.SetDestination(curWaypoint.position);
+                            Agent.SetDestination(curWaypoint);
                         }
                     }
                 }
@@ -332,33 +333,35 @@ namespace AI
             StateText.text = "Survival";
 
             // - Finding new weapon
-            if (selectedWeaponToTake == null && outOfAmmo)
-            {
-                selectedWeaponToTake = Common.FindBestWeapon(transform.position, interactableInSight, weaponsInInventory, faveritWeaponTypes);
+            /*
+             if (selectedWeaponToTake == null && outOfAmmo)
+             {
+                 selectedWeaponToTake = Common.FindBestWeapon(transform.position, interactableInSight, weaponsInInventory, faveritWeaponTypes);
 
-                if (selectedWeaponToTake != null)
-                {
-                    lastWaypoint = curWaypoint;
-                    curWaypoint = selectedWeaponToTake.transform;
-                    Agent.isStopped = false;
-                    Agent.SetDestination(curWaypoint.position);
-                }
-            }
-            else if (selectedWeaponToTake != null)
-            {
-                if (Common.CheckDistanceToPoint(transform.position, selectedWeaponToTake.transform.position, interactDist))
-                {
-                    Common.PickUpWeapon(this, selectedWeaponToTake.GetComponent<Weapon.Common>());
+                 if (selectedWeaponToTake != null)
+                 {
+                     lastWaypoint = curWaypoint;
+                     curWaypoint = selectedWeaponToTake.transform.position;
+                     Agent.isStopped = false;
+                     Agent.SetDestination(curWaypoint);
+                 }
+             }
+             else if (selectedWeaponToTake != null)
+             {
+                 if (Common.CheckDistanceToPoint(transform.position, selectedWeaponToTake.transform.position, interactDist))
+                 {
+                     Common.PickUpWeapon(this, selectedWeaponToTake.GetComponent<Weapon.Common>());
 
-                    if (lastWaypoint != null)
-                    {
-                        curWaypoint = lastWaypoint;
-                        lastWaypoint = null;
-                        Agent.isStopped = false;
-                        Agent.SetDestination(curWaypoint.position);
-                    }
-                }
-            }
+                     if (lastWaypoint != null)
+                     {
+                         curWaypoint = lastWaypoint;
+                         lastWaypoint = Vector3.zero;
+                         Agent.isStopped = false;
+                         Agent.SetDestination(curWaypoint);
+                     }
+                 }
+             }
+            */
         }
 
         private void ElevatorUseUpdate()
@@ -368,7 +371,7 @@ namespace AI
                 case ElevateUseState.Null:
                     Agent.isStopped = true;
                     resumePoint = curWaypoint;
-                    curWaypoint = null;
+                    curWaypoint = Vector3.zero;
 
                     useState = ElevateUseState.Waiting;
 
@@ -403,21 +406,25 @@ namespace AI
             {
                 State = State.Fighting;
             }
-            else if (wayPoints.Length != 0)
-            {
-                if (waypointType == WaypointType.Patrol_Conteniusly || waypointType == WaypointType.Patrol_FromTo)
-                    State = State.Partol;
-                else if (waypointType == WaypointType.One_Way)
-                    State = State.Walking;
-            }
+            /*
+               else if (wayPoints.Length != 0)
+               {
+                   if (waypointType == WaypointType.Patrol_Conteniusly || waypointType == WaypointType.Patrol_FromTo)
+                       State = State.Partol;
+                   else if (waypointType == WaypointType.One_Way)
+                       State = State.Walking;
+               }
+           */
         }
 
         private void WalkingStateCheck()
         {
             if (targableObjs.Length != 0)
                 State = State.Fighting;
+            /*
             if (wayPoints.Length == 0)
                 State = State.Idle;
+            */
 
             if (entryLinkDetector != null && Agent.currentOffMeshLinkData.offMeshLink == entryLinkDetector)
                 State = State.UseElevator;
@@ -428,15 +435,8 @@ namespace AI
             if (targableObjs.Length != 0)
             {
                 State = State.Fighting;
-                lastWaypoint = curWaypoint;
-                curWaypoint = null;
+                curWaypoint = Vector3.zero;
                 Agent.isStopped = true;
-            }
-
-            if (wayPoints.Length == 0)
-            {
-                State = State.Idle;
-                curWaypoint = null;
             }
 
             if (Agent.currentOffMeshLinkData.offMeshLink != null && entryLinkDetector != null)
@@ -473,16 +473,19 @@ namespace AI
         #endregion
 
         #region Input
-        public void ReceiveNewWaypoint(GameObject newPoint, AI.WaypointType type, bool contenius)
+        public void ReceiveNewWaypoint(Vector3 newPoint)
         {
             bool restart = false;
 
+            State = AI.State.Walking;
+            curWaypoint = newPoint;
+            Agent.isStopped = false;
+            Agent.SetDestination(curWaypoint);
+
+            /*
             if (type != waypointType || !contenius)
             {
-                foreach (Transform t in wayPoints)
-                    t.gameObject.GetComponent<Waypoint>().Remove();
-
-                wayPoints = new Transform[0];
+                wayPoints = new Vector3[0];
                 restart = true;
             }
 
@@ -490,21 +493,19 @@ namespace AI
             {
                 if (wayPoints.Length == 0)
                 {
-                    GameObject obj = Instantiate(newPoint);
-                    obj.transform.position = transform.position;
 
-                    wayPoints = Common.AddNewPosition(wayPoints, obj.transform, false);
-                    wayPoints = Common.AddNewPosition(wayPoints, newPoint.transform, true);
+                    wayPoints = Common.AddNewPosition(wayPoints, transform.position, false);
+                    wayPoints = Common.AddNewPosition(wayPoints, newPoint, true);
                 }
                 else
                 {
-                    wayPoints = Common.AddNewPosition(wayPoints, newPoint.transform, contenius);
+                    wayPoints = Common.AddNewPosition(wayPoints, newPoint, contenius);
                 }
             }
 
             if (type == AI.WaypointType.One_Way)
             {
-                wayPoints = Common.AddNewPosition(wayPoints, newPoint.transform, contenius);
+                wayPoints = Common.AddNewPosition(wayPoints, newPoint, contenius);
             }
 
             waypointType = type;
@@ -513,13 +514,14 @@ namespace AI
             {
                 curWaypoint = wayPoints[0];
 
-                Agent.SetDestination(curWaypoint.position);
+                Agent.SetDestination(curWaypoint);
             }
+            */
         }
 
         public void StopAll()
         {
-            wayPoints = new Transform[0];
+            curWaypoint = transform.position;
 
             Agent.isStopped = true;
         }

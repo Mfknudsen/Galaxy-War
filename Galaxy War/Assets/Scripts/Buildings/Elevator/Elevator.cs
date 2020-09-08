@@ -286,19 +286,15 @@ namespace Elevator
             curLevel = newLevel;
         }
 
-        public int GetExitLevel(int entry, Vector3 endPoint)
+        public int GetLevel(Vector3 endPoint)
         {
-            int i = entry;
-
-            for (int j = 0; j < linkPoints.Length; j++)
+            foreach (GameObject obj in linkPoints)
             {
-                GameObject obj = linkPoints[j];
-
                 if (obj.transform.position == endPoint)
                     return obj.GetComponent<MeshLinkDetector>().entryLevel;
             }
 
-            return i;
+            return -1;
         }
         #endregion
 

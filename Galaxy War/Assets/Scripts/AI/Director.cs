@@ -6,13 +6,14 @@ namespace AI
 {
     public enum WaypointType { One_Way, Patrol_FromTo, Patrol_Conteniusly }
 
-    public class Director : Common
+    public class Director : MonoBehaviour
     {
         [Header("Object Reference")]
         public int Count = 0;
         public List<Core> CoreInCloseRange;
         public List<Core> CoreInMediumRange;
         public List<Core> CoreInLongRange;
+        public AI.Common calcAI = null;
 
         [Header("Distance")]
         public Transform Player;
@@ -27,12 +28,16 @@ namespace AI
 
         private void Start()
         {
+            calcAI = ScriptableObject.CreateInstance("AI.Common") as AI.Common;
+
             CoreInCloseRange = new List<Core>();
             CoreInMediumRange = new List<Core>();
             CoreInLongRange = new List<Core>();
 
-            LookDirections = GetSightDirections(5000);
-
+            if (calcAI != null)
+                LookDirections = calcAI.GetSightDirections(5000);
+            else
+                Debug.Log("Null");
             Core[] startCores = GameObject.FindObjectsOfType<Core>();
 
             foreach (Core c in startCores)

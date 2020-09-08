@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace AI
 {
     public enum State { Idle, Walking, Partol, Fighting, Surviving, UseElevator }
     public enum ElevateUseState { Null, Waiting, Enter, Use, Exit }
 
-    public class Common : MonoBehaviour
+    public class Common : ScriptableObject
     {
         #region GlobalValues
         int waypointConteniusDir = 1;
@@ -261,7 +262,7 @@ namespace AI
         #endregion
 
         #region Movement
-        public Transform GetNextWaypoint(Transform[] waypoints, Transform currentGoal, WaypointType type)
+        public Vector3 GetNextWaypoint(Vector3[] waypoints, Vector3 currentGoal, WaypointType type)
         {
             int count = waypoints.Length;
 
@@ -329,13 +330,13 @@ namespace AI
             return false;
         }
 
-        public Transform[] AddNewPosition(Transform[] waypoints, Transform newPoint, bool contenius)
+        public Vector3[] AddNewPosition(Vector3[] waypoints, Vector3 newPoint, bool contenius)
         {
-            List<Transform> result = new List<Transform>();
+            List<Vector3> result = new List<Vector3>();
 
             if (contenius && waypoints.Length != 0)
             {
-                foreach (Transform p in waypoints)
+                foreach (Vector3 p in waypoints)
                     result.Add(p);
                 result.Add(newPoint);
             }
@@ -345,14 +346,13 @@ namespace AI
             return result.ToArray();
         }
 
-        public Transform[] RemovePosition(Transform[] waypoints, Transform toRemove)
+        public Vector3[] RemovePosition(Vector3[] waypoints, Vector3 toRemove)
         {
-            List<Transform> result = new List<Transform>();
+            List<Vector3> result = new List<Vector3>();
 
-            foreach (Transform t in waypoints)
+            foreach (Vector3 t in waypoints)
                 result.Add(t);
 
-            toRemove.gameObject.GetComponent<Waypoint>().Remove();
             result.Remove(toRemove);
 
             return result.ToArray();
@@ -448,6 +448,54 @@ namespace AI
 
         #region Animation
 
+        #endregion
+
+        #region Pathing
+        public Vector3 CalculateElevatorUseNeed(OffMeshLink link, Vector3 endPoint)
+        {
+            Vector3 result = Vector3.zero;
+
+            Elevator.MeshLinkDetector detect = link.gameObject.GetComponent<Elevator.MeshLinkDetector>();
+            if (detect != null)
+                result = detect.transform.position;
+
+            return result;
+        }
+
+        public Vector3 CalculatePointAroundOrigin(Vector3[] prePoints, Vector3 origin, float radius, float minDist, LayerMask navMask)
+        {
+            Vector3 result = Vector3.zero;
+            bool findPath = true;
+            int count = 0;
+
+            while (findPath)
+            {
+                Vector3 randomDir = origin + Random.insideUnitSphere * radius;
+
+                NavMeshHit navHit;
+                NavMesh.SamplePosition(randomDir, out navHit, radius, navMask);
+                result = navHit.position;
+
+                bool minDistMeet = true;
+                foreach (Vector3 v in prePoints)
+                {
+                    if (Vector3.Distance(v, result) < minDist)
+                        minDistMeet = false;
+                }
+
+                if (minDistMeet)
+                    findPath = false;
+
+                count++;
+                if (count >= 100)
+                {
+                    findPath = false;
+                    Debug.Log("Failed To Find Point");
+                }
+            }
+
+            return result;
+        }
         #endregion
     }
 }

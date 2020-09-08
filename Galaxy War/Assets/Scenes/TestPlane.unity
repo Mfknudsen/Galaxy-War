@@ -574,7 +574,6 @@ GameObject:
   - component: {fileID: 168940888}
   - component: {fileID: 168940887}
   - component: {fileID: 168940886}
-  - component: {fileID: 168940885}
   m_Layer: 11
   m_Name: AI (2)
   m_TagString: Untagged
@@ -599,22 +598,6 @@ Transform:
   m_Father: {fileID: 1700872357}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &168940885
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 168940883}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!136 &168940886
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -699,15 +682,12 @@ MonoBehaviour:
   fixedUpdate: 0
   lookDirections: []
   currentSquad: {fileID: 1700872358}
+  isLeader: 0
   State: 0
   moveSpeed: 5
   checkDist: 1.2
-  waypointType: 2
-  wayPoints:
-  - {fileID: 163097756}
-  - {fileID: 2113081565}
-  - {fileID: 394754218}
   Agent: {fileID: 0}
+  curWaypoint: {x: 0, y: 0, z: 0}
   sightPos: {fileID: 1396207816}
   sightRadius: 15
   sightAngel: 90
@@ -822,6 +802,7 @@ MonoBehaviour:
   CoreInCloseRange: []
   CoreInMediumRange: []
   CoreInLongRange: []
+  calcAI: {fileID: 0}
   Player: {fileID: 260419431}
   closeToMedium: 20
   mediumToLong: 50
@@ -855,7 +836,6 @@ GameObject:
   - component: {fileID: 275877837}
   - component: {fileID: 275877836}
   - component: {fileID: 275877835}
-  - component: {fileID: 275877834}
   m_Layer: 11
   m_Name: AI (3)
   m_TagString: Untagged
@@ -880,22 +860,6 @@ Transform:
   m_Father: {fileID: 1700872357}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &275877834
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 275877832}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!136 &275877835
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -980,15 +944,12 @@ MonoBehaviour:
   fixedUpdate: 0
   lookDirections: []
   currentSquad: {fileID: 1700872358}
+  isLeader: 0
   State: 0
   moveSpeed: 5
   checkDist: 1.2
-  waypointType: 2
-  wayPoints:
-  - {fileID: 163097756}
-  - {fileID: 2113081565}
-  - {fileID: 394754218}
   Agent: {fileID: 0}
+  curWaypoint: {x: 0, y: 0, z: 0}
   sightPos: {fileID: 1608417281}
   sightRadius: 15
   sightAngel: 90
@@ -2067,7 +2028,6 @@ GameObject:
   - component: {fileID: 832267990}
   - component: {fileID: 832267989}
   - component: {fileID: 832267988}
-  - component: {fileID: 832267987}
   m_Layer: 11
   m_Name: AI (1)
   m_TagString: Untagged
@@ -2092,22 +2052,6 @@ Transform:
   m_Father: {fileID: 1700872357}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &832267987
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 832267985}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!136 &832267988
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2192,15 +2136,12 @@ MonoBehaviour:
   fixedUpdate: 0
   lookDirections: []
   currentSquad: {fileID: 1700872358}
+  isLeader: 0
   State: 0
   moveSpeed: 5
   checkDist: 1.2
-  waypointType: 2
-  wayPoints:
-  - {fileID: 163097756}
-  - {fileID: 2113081565}
-  - {fileID: 394754218}
   Agent: {fileID: 0}
+  curWaypoint: {x: 0, y: 0, z: 0}
   sightPos: {fileID: 2097367185}
   sightRadius: 15
   sightAngel: 90
@@ -2481,7 +2422,6 @@ GameObject:
   - component: {fileID: 1020447115}
   - component: {fileID: 1020447114}
   - component: {fileID: 1020447113}
-  - component: {fileID: 1020447112}
   m_Layer: 11
   m_Name: AI (4)
   m_TagString: Untagged
@@ -2506,22 +2446,6 @@ Transform:
   m_Father: {fileID: 1700872357}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1020447112
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1020447110}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!136 &1020447113
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2606,15 +2530,12 @@ MonoBehaviour:
   fixedUpdate: 0
   lookDirections: []
   currentSquad: {fileID: 1700872358}
+  isLeader: 0
   State: 0
   moveSpeed: 5
   checkDist: 1.2
-  waypointType: 2
-  wayPoints:
-  - {fileID: 163097756}
-  - {fileID: 2113081565}
-  - {fileID: 394754218}
   Agent: {fileID: 0}
+  curWaypoint: {x: 0, y: 0, z: 0}
   sightPos: {fileID: 914876803}
   sightRadius: 15
   sightAngel: 90
@@ -4576,7 +4497,6 @@ GameObject:
   - component: {fileID: 1573876233}
   - component: {fileID: 1573876232}
   - component: {fileID: 1573876231}
-  - component: {fileID: 1573876235}
   m_Layer: 11
   m_Name: AI
   m_TagString: Untagged
@@ -4605,15 +4525,12 @@ MonoBehaviour:
   fixedUpdate: 0
   lookDirections: []
   currentSquad: {fileID: 1700872358}
+  isLeader: 0
   State: 0
   moveSpeed: 5
   checkDist: 1.2
-  waypointType: 2
-  wayPoints:
-  - {fileID: 163097756}
-  - {fileID: 2113081565}
-  - {fileID: 394754218}
   Agent: {fileID: 0}
+  curWaypoint: {x: 0, y: 0, z: 0}
   sightPos: {fileID: 2129899790}
   sightRadius: 15
   sightAngel: 90
@@ -4730,22 +4647,6 @@ Transform:
   m_Father: {fileID: 1700872357}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1573876235
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1573876228}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &1608417280
 GameObject:
   m_ObjectHideFlags: 0
@@ -4971,15 +4872,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb9a0036f8b5772479e4128e7374eeda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Dev: 1
+  Dev_WayPoints:
+  - {fileID: 163097756}
+  - {fileID: 2113081565}
+  - {fileID: 394754218}
+  calcSquad: {fileID: 0}
   containsPlayer: 0
   maxSquadMemberCount: 5
   members:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 1573876228}
+  - {fileID: 832267985}
+  - {fileID: 168940883}
+  - {fileID: 275877832}
+  - {fileID: 1020447110}
+  State: 0
   waypointType: 0
+  curWaypoint: {x: 0, y: 0, z: 0}
+  lastWaypoint: {x: 0, y: 0, z: 0}
+  prePositions: []
+  waypoints: []
+  toUseElevator: 0
+  entryLinkDetector: {fileID: 0}
+  Agent: {fileID: 0}
+  mainPart: {fileID: 0}
+  entry: 0
+  exit: 0
 --- !u!1 &1724637771
 GameObject:
   m_ObjectHideFlags: 0
@@ -5861,7 +5779,7 @@ MonoBehaviour:
   - {fileID: 774789838}
   - {fileID: 168927003}
   - {fileID: 1244281645}
-  nextLevel: 2
+  nextLevel: 0
   randomNavDist: 1
   elevatorMask:
     serializedVersion: 2

@@ -10,7 +10,6 @@ namespace AI
     {
         [Header("Object Reference")]
         public int Count = 0;
-        public Core c;
         public List<Core> CoreInCloseRange;
         public List<Core> CoreInMediumRange;
         public List<Core> CoreInLongRange;
@@ -34,7 +33,10 @@ namespace AI
 
             LookDirections = GetSightDirections(5000);
 
-            AddNewCore(c);
+            Core[] startCores = GameObject.FindObjectsOfType<Core>();
+
+            foreach (Core c in startCores)
+                AddNewCore(c);
         }
 
         private void Update()
@@ -91,17 +93,17 @@ namespace AI
                 if (dist < closeToMedium)
                 {
                     CoreInCloseRange.Add(newCore);
-                    c.updateDelay = 1;
+                    newCore.updateDelay = 1;
                 }
                 else if (dist < mediumToLong)
                 {
                     CoreInMediumRange.Add(newCore);
-                    c.updateDelay = mediumDelay;
+                    newCore.updateDelay = mediumDelay;
                 }
                 else
                 {
                     CoreInLongRange.Add(newCore);
-                    c.updateDelay = longDelay;
+                    newCore.updateDelay = longDelay;
                 }
 
                 newCore.StartCore(LookDirections);
@@ -142,17 +144,17 @@ namespace AI
                 if (dist < closeToMedium)
                 {
                     CoreInCloseRange.Add(C);
-                    c.updateDelay = 1;
+                    C.updateDelay = 1;
                 }
                 else if (dist < mediumToLong)
                 {
                     CoreInMediumRange.Add(C);
-                    c.updateDelay = mediumDelay;
+                    C.updateDelay = mediumDelay;
                 }
                 else
                 {
                     CoreInLongRange.Add(C);
-                    c.updateDelay = longDelay;
+                    C.updateDelay = longDelay;
                 }
             }
         }

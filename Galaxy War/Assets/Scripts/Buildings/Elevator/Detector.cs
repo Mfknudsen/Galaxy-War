@@ -12,7 +12,7 @@ namespace Elevator
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.GameObject.isStatic)
+            if (!other.gameObject.isStatic)
                 onPlatform.Add(other.gameObject);
         }
 

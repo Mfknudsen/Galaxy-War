@@ -188,35 +188,6 @@ namespace AI
             //Interaction
             interactableObjectsInRange = Common.CheckObjectsInRadius(transform.position, sightRadius, interactMask);
             interactableInSight = Common.UpdateInSight(sightPos, interactableObjectsInRange, lookDirections, sightRadius, interactMask + terrainMask, sightAngel);
-
-            //
-            //Next OffMeshLink is part of an Elevator
-            if (State == State.Walking || State == State.Partol && entryLinkDetector == null)
-            {
-                OffMeshLink link = Agent.nextOffMeshLinkData.offMeshLink;
-
-                if (link != null)
-                {
-                    entryLinkDetector = link.gameObject.GetComponent<Elevator.MeshLinkDetector>().Avaiable(currentSquad);
-
-                    if (entryLinkDetector != null)
-                    {
-                        entry = entryLinkDetector.entryLevel;
-
-                        if (link.endTransform.gameObject != null)
-                        {
-                            if (entryLinkDetector != null)
-                            {
-                                exit = entryLinkDetector.main.GetExitLevel(entry, link.endTransform.position);
-                                mainPart = entryLinkDetector.main;
-                                toUseElevator = true;
-                            }
-                            else
-                                entry = 0;
-                        }
-                    }
-                }
-            }
         }
 
         #region UpdateState

@@ -31,7 +31,7 @@ namespace Commander
         public MeshCollider col = null;
         public float maxTime = 0.5f;
         private float time = 0;
-        [SerializeField] private List<Core> SelectedCores = new List<Core>();
+        [SerializeField] private List<Squad.Core> SelectedCores = new List<Squad.Core>();
         [SerializeField] private Mesh currentDetectionMesh = null;
         private bool setToPatrol = false;
         private Vector2[] uiMousePos = new Vector2[2];
@@ -113,11 +113,11 @@ namespace Commander
                         obj.transform.position = hit.point;
                         obj.transform.parent = waypointParent;
 
-                        foreach (Core c in SelectedCores)
+                        foreach (Squad.Core c in SelectedCores)
                         {
                             if (!setToPatrol)
                             {
-                                c.ReceiveNewWaypoint(obj, AI.WaypointType.One_Way, Input.GetKey(KeyCode.LeftShift));
+                                c.ReceiveNewWaypoint(obj.transform.position, AI.WaypointType.One_Way, Input.GetKey(KeyCode.LeftShift));
                                 obj.GetComponent<Waypoint>().Add();
                             }
                             else
@@ -126,7 +126,7 @@ namespace Commander
                                 if (t == AI.WaypointType.One_Way)
                                     t = AI.WaypointType.Patrol_FromTo;
 
-                                c.ReceiveNewWaypoint(obj, t, Input.GetKey(KeyCode.LeftShift));
+                                c.ReceiveNewWaypoint(obj.transform.position, t, Input.GetKey(KeyCode.LeftShift));
                                 obj.GetComponent<Waypoint>().Add();
                             }
                         }
@@ -140,7 +140,7 @@ namespace Commander
 
         public void TogglePatrolMode()
         {
-            foreach (Core c in SelectedCores)
+            foreach (Squad.Core c in SelectedCores)
             {
                 AI.WaypointType t = c.waypointType;
 
@@ -237,7 +237,7 @@ namespace Commander
 
         private void OnTriggerStay(Collider other)
         {
-            Core C = other.GetComponent<Core>();
+            Squad.Core C = other.GetComponent<Core>().currentSquad;
             if (C != null && !SelectedCores.Contains(C))
                 SelectedCores.Add(C);
         }

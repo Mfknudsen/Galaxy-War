@@ -22,7 +22,7 @@ namespace Squad
         [Header("Squad State:")]
         public bool containsPlayer = false;
         public int maxSquadMemberCount = 5;
-        public List<GameObject> members = new List<GameObject>();
+        public List<AI.Core> members = new List<AI.Core>();
         public AI.State State = 0;
 
         [Header(" - Navigation:")]
@@ -33,10 +33,11 @@ namespace Squad
 
         [Header(" - Elevator Values:")]
         public bool toUseElevator = false;
-        public Elevator.MeshLinkDetector entryLinkDetector = null;
+        public Squad.ElevatorUseState elevatorUse = 0;
         public NavMeshAgent Agent = null;
         public Elevator.Elevator mainPart = null;
-        [SerializeField] private int entry = 0, exit = 0;
+        public int entry = 0, exit = 0;
+        public Vector3 usePos = Vector3.zero;
         #endregion
 
         private void Awake()
@@ -52,7 +53,7 @@ namespace Squad
             if (Agent == null)
                 Agent = gameObject.AddComponent<NavMeshAgent>();
 
-            members[0].GetComponent<AI.Core>().isLeader = true;
+            members[0].isLeader = true;
             prePositions = new Vector3[maxSquadMemberCount];
 
             calcSquad = ScriptableObject.CreateInstance("Squad.Common") as Squad.Common;
@@ -61,34 +62,79 @@ namespace Squad
 
         private void Update()
         {
-            if (Dev_Active)
+            AI.Core c = members[0];
+            OffMeshLinkData data = c.Agent.nextOffMeshLinkData;
+            if (data.valid)
             {
-                calcSquad.UpdateMemberPath(members.ToArray(), curWaypoint, prePositions, containsPlayer);
-                for (int i = 0; i < members.Count; i++)
-                    prePositions[i] = members[i].GetComponent<AI.Core>().curWaypoint;
+                if (!toUseElevator && data.offMeshLink != null)
+                {
+                    NavMeshPath path = c.Agent.path;
+                    c.Agent.isStopped = true;
+                    calcSquad.DebugPath(path, Color.red);
+                    usePos = calcSquad.GetNextOffMeshLinkStartPosition(path, data.offMeshLink, 1);
+                    calcSquad.GetElevatorInformation(this, c.Agent.nextOffMeshLinkData.offMeshLink, usePos);
+                }
+            }
+            else
+                members[0].ReceiveNewWaypoint(curWaypoint);
+
+            if (toUseElevator)
+            {
+                switch (elevatorUse)
+                {
+                    case Squad.ElevatorUseState.Null:
+                        c.Agent.SetDestination(usePos);
+
+                        elevatorUse = Squad.ElevatorUseState.Call;
+                        break;
+
+                    case Squad.ElevatorUseState.Call:
+                        foreach (AI.Core C in members)
+                            C.Agent.autoTraverseOffMeshLink = true;
+
+                        if (Vector3.Distance(c.transform.position, usePos) < 5)
+                        {
+                            if (mainPart.curLevel == entry && mainPart.state == Elevator.State.Open)
+                                elevatorUse = ElevatorUseState.Enter;
+                            else
+                            {
+                                calcSquad.CallElevator(mainPart, entry);
+                                calcSquad.AddToWaitList(mainPart, entry, this);
+
+                                elevatorUse = ElevatorUseState.Wait;
+                            }
+                        }
+                        break;
+
+                    case Squad.ElevatorUseState.Wait:
+
+                        break;
+
+                    case Squad.ElevatorUseState.Enter:
+                        break;
+
+                    case Squad.ElevatorUseState.Exit:
+                        break;
+                }
             }
         }
 
-        public bool AddMemberToCount(GameObject obj, bool isPlayer)
+        public bool AddMemberToCount(AI.Core core, bool isPlayer)
         {
-            if (members.Contains(obj) || (isPlayer && containsPlayer))
+            if (members.Contains(core) || (isPlayer && containsPlayer))
                 return false;
             else
-                members = calcSquad.AddMemberToCount(members, obj, maxSquadMemberCount, containsPlayer, isPlayer);
+                members = calcSquad.AddMemberToCount(members, core, maxSquadMemberCount, containsPlayer, isPlayer);
 
             return true;
         }
 
-        public void RemoveMemberFromCount(GameObject obj, bool isPlayer)
+        public bool RemoveMemberFromCount(AI.Core core, bool isPlayer)
         {
-            if (isPlayer && containsPlayer)
-                containsPlayer = false;
+            int preCount = members.Count;
+            calcSquad.RemoveMemberFromCount(members, core, isPlayer);
 
-            if (members.Contains(obj))
-                members.Remove(obj);
-
-            if (members.Count == 0)
-                DestroySquad();
+            return false;
         }
 
 
@@ -119,7 +165,7 @@ namespace Squad
 
         private void DestroySquad()
         {
-            foreach (GameObject member in members)
+            foreach (AI.Core member in members)
             {
                 Destroy(member);
             }

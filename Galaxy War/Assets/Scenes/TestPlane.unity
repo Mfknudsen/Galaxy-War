@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 262.3371, g: 325.05005, b: 430.21954, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -472,7 +472,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 163097755}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 43.95, y: 10.17, z: 0.14}
+  m_LocalPosition: {x: 41.98, y: 10.5, z: 0.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 689791472}
@@ -2250,12 +2250,13 @@ GameObject:
   - component: {fileID: 889597814}
   - component: {fileID: 889597813}
   - component: {fileID: 889597812}
+  - component: {fileID: 889597815}
   m_Layer: 10
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_StaticEditorFlags: 4294967287
   m_IsActive: 1
 --- !u!4 &889597811
 Transform:
@@ -2334,6 +2335,35 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 889597810}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &889597815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 889597810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentTypeID: 0
+  m_CollectObjects: 2
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_BuildHeightMesh: 0
+  m_NavMeshData: {fileID: 23800000, guid: af3a6bb9cccf0f7489b402646e3fe4aa, type: 2}
 --- !u!1 &914876802
 GameObject:
   m_ObjectHideFlags: 0
@@ -4849,7 +4879,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1700872356}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 4.03, y: -0.62, z: 0.56}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1573876234}
@@ -4877,15 +4907,16 @@ MonoBehaviour:
   - {fileID: 163097756}
   - {fileID: 2113081565}
   - {fileID: 394754218}
+  Dev_Active: 0
   calcSquad: {fileID: 0}
   containsPlayer: 0
   maxSquadMemberCount: 5
   members:
-  - {fileID: 1573876228}
-  - {fileID: 832267985}
-  - {fileID: 168940883}
-  - {fileID: 275877832}
-  - {fileID: 1020447110}
+  - {fileID: 1573876230}
+  - {fileID: 832267991}
+  - {fileID: 168940889}
+  - {fileID: 275877838}
+  - {fileID: 1020447116}
   State: 0
   waypointType: 0
   curWaypoint: {x: 0, y: 0, z: 0}
@@ -4893,11 +4924,12 @@ MonoBehaviour:
   prePositions: []
   waypoints: []
   toUseElevator: 0
-  entryLinkDetector: {fileID: 0}
+  elevatorUse: 0
   Agent: {fileID: 0}
   mainPart: {fileID: 0}
   entry: 0
   exit: 0
+  usePos: {x: 0, y: 0, z: 0}
 --- !u!1 &1724637771
 GameObject:
   m_ObjectHideFlags: 0
@@ -5770,6 +5802,7 @@ MonoBehaviour:
   squadCapacity: 1
   curSquadCount: 0
   onPlatform: []
+  inWait: 0
   platformSpeed: 10
   levelTransforms:
   - {fileID: 1853958238}
@@ -5780,6 +5813,7 @@ MonoBehaviour:
   - {fileID: 168927003}
   - {fileID: 1244281645}
   nextLevel: 0
+  curLevel: 0
   randomNavDist: 1
   elevatorMask:
     serializedVersion: 2
@@ -5798,6 +5832,7 @@ MonoBehaviour:
   closedPoints: []
   openPoints: []
   up: 1
+  nextFloorList: 
   floorsToVisit: 
   coverMask:
     serializedVersion: 2

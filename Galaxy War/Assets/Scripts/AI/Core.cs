@@ -7,6 +7,7 @@ namespace AI
 {
     public class Core : MonoBehaviour
     {
+        #region Values
         [Header("Dev:")]
         public TextMesh StateText;
 
@@ -69,6 +70,7 @@ namespace AI
         private Vector3 resumePoint = Vector3.zero;
         private int entry = 0, exit = 0;
         private Elevator.MeshLinkDetector entryLinkDetector = null;
+        #endregion
 
         private void Awake()
         {
@@ -80,7 +82,6 @@ namespace AI
             Director.AddNewCore(this);
 
             transform.parent = currentSquad.transform;
-            currentSquad.members[0] = gameObject;
         }
 
         public void StartCore(Vector3[] dir)
@@ -381,7 +382,7 @@ namespace AI
                     if (!mainPart.floorsToVisit.Contains(entry))
                         mainPart.floorsToVisit.Add(entry);
 
-                    mainPart.AllowSquadsIn(entry, currentSquad);
+                    mainPart.AllowSquadsIn(currentSquad);
 
                     if (mainPart.onPlatform.Contains(currentSquad))
                         useState = ElevateUseState.Enter;
@@ -481,42 +482,6 @@ namespace AI
             curWaypoint = newPoint;
             Agent.isStopped = false;
             Agent.SetDestination(curWaypoint);
-
-            /*
-            if (type != waypointType || !contenius)
-            {
-                wayPoints = new Vector3[0];
-                restart = true;
-            }
-
-            if ((type == AI.WaypointType.Patrol_Conteniusly || type == AI.WaypointType.Patrol_FromTo))
-            {
-                if (wayPoints.Length == 0)
-                {
-
-                    wayPoints = Common.AddNewPosition(wayPoints, transform.position, false);
-                    wayPoints = Common.AddNewPosition(wayPoints, newPoint, true);
-                }
-                else
-                {
-                    wayPoints = Common.AddNewPosition(wayPoints, newPoint, contenius);
-                }
-            }
-
-            if (type == AI.WaypointType.One_Way)
-            {
-                wayPoints = Common.AddNewPosition(wayPoints, newPoint, contenius);
-            }
-
-            waypointType = type;
-
-            if (restart)
-            {
-                curWaypoint = wayPoints[0];
-
-                Agent.SetDestination(curWaypoint);
-            }
-            */
         }
 
         public void StopAll()

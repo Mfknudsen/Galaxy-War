@@ -20,15 +20,15 @@ namespace Elevator
         public int squadCapacity = 1;
         public int curSquadCount = 0;
         public List<Squad.Core> onPlatform = new List<Squad.Core>();
-
+        public int inWait = 0;
 
         [Header("Levels:")]
         public float platformSpeed = 1;
         public Transform[] levelTransforms = new Transform[0];
         public NavMeshLink[] navLinkObjs = new NavMeshLink[0];
         private bool navLinkActive = false;
-        [SerializeField] private int nextLevel = 0;
-        private int curLevel = 0;
+        public int nextLevel = 0;
+        public int curLevel = 0;
 
         [Header(" - Navigation:")]
         public float randomNavDist = 1;
@@ -46,6 +46,7 @@ namespace Elevator
 
         [Header(" - Direction:")]
         public bool up = true;
+        public List<int> nextFloorList = new List<int>();
         public List<int> floorsToVisit = new List<int>();
 
         [Header(" - WaitZone")]
@@ -73,6 +74,8 @@ namespace Elevator
 
             for (int i = 0; i < navLinkObjs.Length; i++)
                 navLinkObjs[i].gameObject.GetComponent<MeshLinkDetector>().entryLevel = i;
+
+            setupDone = true;
         }
 
         private void Update()
@@ -82,6 +85,8 @@ namespace Elevator
                 //
                 //Wait for Squad Entry
                 case State.Open:
+                    inWait = linkPoints[nextLevel].GetComponent<MeshLinkDetector>().inWait.Count;
+
                     if (curLevel != nextLevel)
                     {
                         state = State.Closing;
@@ -93,6 +98,16 @@ namespace Elevator
                     {
                         navLinkObjs[curLevel].enabled = true;
                         navLinkActive = true;
+                    }
+                    else if (inWait > 0 && onPlatform.Count < squadCapacity)
+                    {
+                        for (int i = 0; i < (squadCapacity - onPlatform.Count); i++)
+                        {
+                            MeshLinkDetector detect = linkPoints[curLevel].GetComponent<MeshLinkDetector>();
+
+                            if (detect.inWait.Count - 1 >= i)
+                                AllowSquadsIn(detect.inWait[i]);
+                        }
                     }
                     else if (onPlatform.Count == 0 && levelTransforms[curLevel].GetComponentInChildren<MeshLinkDetector>().inWait.Count == 0)
                     {
@@ -299,11 +314,15 @@ namespace Elevator
         #endregion
 
         #region Decission
-        public bool AllowSquadsIn(int level, Squad.Core squadCore)
+        public bool AllowSquadsIn(Squad.Core core)
         {
-            if (level == curLevel && !onPlatform.Contains(squadCore) && state == State.Open)
+            if (!onPlatform.Contains(core))
             {
-                onPlatform.Add(squadCore);
+                onPlatform.Add(core);
+                core.elevatorUse = Squad.ElevatorUseState.Enter;
+                foreach (AI.Core c in core.members)
+                    c.Agent.autoTraverseOffMeshLink = true;
+                core.calcSquad.EnterOnElevator(core, this);
 
                 return true;
             }
@@ -315,7 +334,7 @@ namespace Elevator
         {
             for (int i = 0; i < onPlatform.Count; i++)
             {
-                foreach (GameObject obj in onPlatform[i].members)
+                foreach (AI.Core obj in onPlatform[i].members)
                 {
 
                 }

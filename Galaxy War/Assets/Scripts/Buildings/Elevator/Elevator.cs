@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -19,13 +20,20 @@ namespace Elevator
         [Header("Squad:")]
         public int squadCapacity = 1;
         public int curSquadCount = 0;
-        public List<Squad.Core> onPlatform = new List<Squad.Core>();
+        public List<GameObject> objOnPlatform = new List<GameObject>();
+        public List<Squad.Core> onPlatformList = new List<Squad.Core>();
         public int inWait = 0;
+
+        [Header("Door:")]
+        public float doorSpeed = 1;
+        public Transform[] doors = new Transform[0];
+        public Transform[] openPoints = new Transform[0];
+        public Transform[] closePoints = new Transform[0];
+        private int curIndex = -1;
 
         [Header("Levels:")]
         public float platformSpeed = 1;
         public Transform[] levelTransforms = new Transform[0];
-        public NavMeshLink[] navLinkObjs = new NavMeshLink[0];
         private bool navLinkActive = false;
         public int nextLevel = 0;
         public int curLevel = 0;
@@ -37,12 +45,6 @@ namespace Elevator
         public bool setupDone = false;
         public GameObject[] prefabs = new GameObject[2];
         public GameObject[] linkPoints = new GameObject[0];
-
-        [Header(" - Door Values:")]
-        public float doorSpeed = 1;
-        public GameObject[] doors = new GameObject[0];
-        public Transform[] closedPoints = new Transform[0];
-        public Transform[] openPoints = new Transform[0];
 
         [Header(" - Direction:")]
         public bool up = true;
@@ -59,21 +61,16 @@ namespace Elevator
 
         private void Awake()
         {
-            foreach (GameObject obj in linkPoints)
-            {
-                MeshLinkDetector d = obj.GetComponent<MeshLinkDetector>();
-                d.main = this;
-                d.maxSquadCount = squadCapacity;
-            }
-
-            detect = platform.GetChild(0).GetComponent<Detector>();
-            detect.elev = this;
-
             SetupOffMeshLink();
             SetupWaitZone();
 
-            for (int i = 0; i < navLinkObjs.Length; i++)
-                navLinkObjs[i].gameObject.GetComponent<MeshLinkDetector>().entryLevel = i;
+            for (int i = 0; i < linkPoints.Length; i++)
+            {
+                MeshLinkDetector d = linkPoints[i].GetComponent<MeshLinkDetector>();
+                d.main = this;
+                d.maxSquadCount = squadCapacity;
+                d.entryLevel = i;
+            }
 
             setupDone = true;
         }
@@ -91,17 +88,15 @@ namespace Elevator
                     {
                         state = State.Closing;
 
-                        navLinkObjs[curLevel].enabled = false;
                         navLinkActive = false;
                     }
                     else if (!navLinkActive)
                     {
-                        navLinkObjs[curLevel].enabled = true;
                         navLinkActive = true;
                     }
-                    else if (inWait > 0 && onPlatform.Count < squadCapacity)
+                    else if (inWait > 0 && onPlatformList.Count < squadCapacity)
                     {
-                        for (int i = 0; i < (squadCapacity - onPlatform.Count); i++)
+                        for (int i = 0; i < (squadCapacity - onPlatformList.Count); i++)
                         {
                             MeshLinkDetector detect = linkPoints[curLevel].GetComponent<MeshLinkDetector>();
 
@@ -109,9 +104,13 @@ namespace Elevator
                                 AllowSquadsIn(detect.inWait[i]);
                         }
                     }
-                    else if (onPlatform.Count == 0 && levelTransforms[curLevel].GetComponentInChildren<MeshLinkDetector>().inWait.Count == 0)
+                    else if (onPlatformList.Count == 0 && levelTransforms[curLevel].GetComponentInChildren<MeshLinkDetector>().inWait.Count == 0)
                     {
                         CheckVisitList();
+                    }
+                    else if (AllSquadsIsInside(onPlatformList.ToArray(), objOnPlatform.ToArray()))
+                    {
+                        nextLevel = nextFloorList[0];
                     }
 
                     break;
@@ -133,7 +132,7 @@ namespace Elevator
                 //
                 //Move the Platform
                 case State.Running:
-                    if (Vector3.Distance(platform.position, levelTransforms[nextLevel].position) < 0.1f)
+                    if (Vector3.Distance(platform.position, levelTransforms[nextLevel].position) < 0.2f)
                     {
                         platform.position = levelTransforms[nextLevel].position;
                         curLevel = nextLevel;
@@ -233,38 +232,50 @@ namespace Elevator
         #region Door
         private bool OpenDoor()
         {
-            if (doors.Length > 0)
+            if (curIndex == -1)
             {
-                doors[curLevel].transform.position = Vector3.Lerp(doors[curLevel].transform.position, openPoints[curLevel].position, doorSpeed);
-
-                if (Vector3.Distance(doors[curLevel].transform.position, openPoints[curLevel].position) < 0.1f)
+                int closestIndex = doors.Length - 1;
+                for (int i = 0; i < doors.Length; i++)
                 {
-                    doors[curLevel].transform.position = openPoints[curLevel].position;
-
-                    return true;
+                    if (Vector3.Distance(doors[i].position, linkPoints[curLevel].transform.position) < Vector3.Distance(doors[closestIndex].position, linkPoints[curLevel].transform.position))
+                        closestIndex = i;
                 }
+                curIndex = closestIndex;
+            }
+
+            if (Vector3.Distance(doors[curIndex].position, openPoints[curIndex].position) < 0.1f)
+            {
+                doors[curIndex].position = openPoints[curIndex].position;
+                curIndex = -1;
+                return true;
             }
             else
-                return true;
+                doors[curIndex].position += (openPoints[curIndex].position - doors[curIndex].position).normalized * doorSpeed * Time.deltaTime;
 
             return false;
         }
 
         private bool CloseDoor()
         {
-            if (doors.Length > 0)
+            if (curIndex == -1)
             {
-                doors[curLevel].transform.position = Vector3.Lerp(doors[curLevel].transform.position, closedPoints[curLevel].position, doorSpeed);
-
-                if (Vector3.Distance(doors[curLevel].transform.position, closedPoints[curLevel].position) < 0.1f)
+                int closestIndex = doors.Length - 1;
+                for (int i = 0; i < doors.Length; i++)
                 {
-                    doors[curLevel].transform.position = closedPoints[curLevel].position;
-
-                    return true;
+                    if (Vector3.Distance(doors[i].position, linkPoints[curLevel].transform.position) < Vector3.Distance(doors[closestIndex].position, linkPoints[curLevel].transform.position))
+                        closestIndex = i;
                 }
+                curIndex = closestIndex;
+            }
+
+            if (Vector3.Distance(doors[curIndex].position, closePoints[curIndex].position) < 0.1f)
+            {
+                doors[curIndex].position = closePoints[curIndex].position;
+                curIndex = -1;
+                return true;
             }
             else
-                return true;
+                doors[curIndex].position += (closePoints[curIndex].position - doors[curIndex].position).normalized * doorSpeed * Time.deltaTime;
 
             return false;
         }
@@ -276,23 +287,6 @@ namespace Elevator
             platform.position += (levelTransforms[nextLevel].position - levelTransforms[curLevel].position).normalized * platformSpeed * Time.deltaTime;
         }
 
-        public Transform GetPlatformWayPoint()
-        {
-            Transform result = null;
-            Vector3 randomDir = Random.insideUnitSphere * randomNavDist;
-
-            NavMeshHit navHit;
-            NavMesh.SamplePosition(randomDir, out navHit, randomNavDist, elevatorMask);
-
-            if (navHit.normal != Vector3.zero)
-            {
-                Vector3 final = new Vector3(navHit.position.x, navHit.position.y + 1, navHit.position.z);
-                navTransform.position = final;
-                result = navTransform;
-            }
-
-            return result;
-        }
         #endregion
 
         #region Interaction
@@ -316,13 +310,11 @@ namespace Elevator
         #region Decission
         public bool AllowSquadsIn(Squad.Core core)
         {
-            if (!onPlatform.Contains(core))
+            if (!onPlatformList.Contains(core))
             {
-                onPlatform.Add(core);
-                core.elevatorUse = Squad.ElevatorUseState.Enter;
-                foreach (AI.Core c in core.members)
-                    c.Agent.autoTraverseOffMeshLink = true;
-                core.calcSquad.EnterOnElevator(core, this);
+                StartCoroutine(delayEnterState(core));
+
+                onPlatformList.Add(core);
 
                 return true;
             }
@@ -330,15 +322,29 @@ namespace Elevator
             return false;
         }
 
-        private void AllSquadsIsInside()
+        private bool AllSquadsIsInside(Squad.Core[] squadCores, GameObject[] curOnPlatform)
         {
-            for (int i = 0; i < onPlatform.Count; i++)
+            foreach (Squad.Core core in squadCores)
             {
-                foreach (AI.Core obj in onPlatform[i].members)
+                foreach (AI.Core c in core.members)
                 {
-
+                    if (!curOnPlatform.Contains(c.gameObject))
+                        return false;
                 }
             }
+
+            return true;
+        }
+
+        //Delays
+        IEnumerator delayEnterState(Squad.Core squadCore)
+        {
+            foreach (AI.Core c in squadCore.members)
+                c.Agent.autoTraverseOffMeshLink = true;
+
+            yield return 0;
+
+            squadCore.elevatorUse = Squad.ElevatorUseState.Enter;
         }
         #endregion
 

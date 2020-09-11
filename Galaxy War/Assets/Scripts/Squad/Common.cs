@@ -7,7 +7,7 @@ namespace Squad
 {
     #region Enums
     public enum SquadManageState { Calculate, UpdateMembers }
-    public enum ElevatorUseState { Null, Call, Wait, Enter, Exit }
+    public enum ElevatorUseState { Setup, Call, Wait, Enter, Exit }
     #endregion
 
     public class Common : ScriptableObject
@@ -57,10 +57,10 @@ namespace Squad
         #endregion
 
         #region Navigation
-        public void UpdateMemberPath(List<AI.Core> members, Vector3 pos, Vector3[] prePosition, bool containsPlayer)
+        public void UpdateMemberPath(List<AI.Core> members, Vector3 pos, bool containsPlayer)
         {
-            List<Vector3> prePoints = new List<Vector3>();
-            prePoints.Add(pos);
+            Vector3[] prePoints = new Vector3[members.Count];
+            prePoints[0] = pos;
 
             if (containsPlayer)
             {
@@ -68,33 +68,22 @@ namespace Squad
             }
             else
             {
-                if (Vector3.Distance(prePosition[0], pos) > 2)
+                AI.Core c = members[0];
+                c.Agent.isStopped = false;
+                c.ReceiveNewWaypoint(pos);
+            }
+
+            if (members.Count > 1)
+            {
+                for (int i = 1; i < members.Count; i++)
                 {
-                    AI.Core c = members[0].GetComponent<AI.Core>();
+                    AI.Core c = members[i];
                     c.Agent.isStopped = false;
-                    c.ReceiveNewWaypoint(pos);
-
-                    if (c.Agent.nextOffMeshLinkData.offMeshLink != null)
+                    Vector3 newPoint = calcAI.CalculatePointAroundOrigin(prePoints, pos, 5, 3, -1);
+                    if (Vector3.Distance(newPoint, prePoints[i]) > 1)
                     {
-                        if (ElevatorOnPath(c.Agent.nextOffMeshLinkData.offMeshLink))
-                        {
-                            prePoints[0] = c.Agent.nextOffMeshLinkData.offMeshLink.transform.position;
-                            c.ReceiveNewWaypoint(pos);
-                        }
-                    }
-
-                    if (members.Count > 1)
-                    {
-                        for (int i = 1; i < members.Count; i++)
-                        {
-                            members[i].Agent.isStopped = false;
-                            Vector3 newPoint = calcAI.CalculatePointAroundOrigin(prePoints.ToArray(), prePoints[0], 5, 3, -1);
-                            if (Vector3.Distance(newPoint, prePosition[i]) > 2)
-                            {
-                                prePoints.Add(newPoint);
-                                members[i].GetComponent<AI.Core>().ReceiveNewWaypoint(newPoint);
-                            }
-                        }
+                        prePoints[i] = newPoint;
+                        c.ReceiveNewWaypoint(newPoint);
                     }
                 }
             }
@@ -152,10 +141,13 @@ namespace Squad
 
         public int GetLevel(Elevator.Elevator mainPart, Vector3 pos)
         {
-            for (int i = 0; i < mainPart.linkPoints.Length; i++)
+            if (mainPart != null)
             {
-                if (mainPart.linkPoints[i].transform.position == pos)
-                    return i;
+                for (int i = 0; i < mainPart.linkPoints.Length; i++)
+                {
+                    if (mainPart.linkPoints[i].transform.position == pos)
+                        return i;
+                }
             }
 
             return -1;
@@ -185,9 +177,7 @@ namespace Squad
             core.curWaypoint = mainPart.platform.position;
 
             core.members[0].Agent.SetDestination(core.curWaypoint);
-            Vector3[] prePoints = new Vector3[core.members.Count];
-            prePoints[0] = core.curWaypoint;
-            core.calcSquad.UpdateMemberPath(core.members, core.curWaypoint, prePoints, core.containsPlayer);
+            core.calcSquad.UpdateMemberPath(core.members, core.curWaypoint, core.containsPlayer);
         }
         #endregion
     }

@@ -384,7 +384,7 @@ namespace AI
 
                     mainPart.AllowSquadsIn(currentSquad);
 
-                    if (mainPart.onPlatform.Contains(currentSquad))
+                    if (mainPart.onPlatformList.Contains(currentSquad))
                         useState = ElevateUseState.Enter;
                     break;
 

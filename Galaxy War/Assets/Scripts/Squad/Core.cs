@@ -37,7 +37,7 @@ namespace Squad
         public NavMeshAgent Agent = null;
         public Elevator.Elevator mainPart = null;
         public int entry = 0, exit = 0;
-        public Vector3 usePos = Vector3.zero;
+        public Vector3 usePos = Vector3.zero, resumePoint = Vector3.zero;
         #endregion
 
         private void Awake()
@@ -58,51 +58,53 @@ namespace Squad
 
             calcSquad = ScriptableObject.CreateInstance("Squad.Common") as Squad.Common;
             calcSquad.Setup();
+
+            foreach (AI.Core c in members)
+                c.Agent.autoTraverseOffMeshLink = false;
         }
 
         private void Update()
         {
             AI.Core c = members[0];
+            if (c.curWaypoint != curWaypoint)
+            {
+                calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
+            }
+
             OffMeshLinkData data = c.Agent.nextOffMeshLinkData;
+            Debug.Log(data.offMeshLink);
             if (data.valid)
             {
+                Debug.Log("Link Found");
                 if (!toUseElevator && data.offMeshLink != null)
                 {
                     NavMeshPath path = c.Agent.path;
-                    c.Agent.isStopped = true;
                     calcSquad.DebugPath(path, Color.red);
                     usePos = calcSquad.GetNextOffMeshLinkStartPosition(path, data.offMeshLink, 1);
                     calcSquad.GetElevatorInformation(this, c.Agent.nextOffMeshLinkData.offMeshLink, usePos);
                 }
             }
-            else
-                members[0].ReceiveNewWaypoint(curWaypoint);
 
             if (toUseElevator)
             {
                 switch (elevatorUse)
                 {
-                    case Squad.ElevatorUseState.Null:
-                        c.Agent.SetDestination(usePos);
+                    case Squad.ElevatorUseState.Setup:
+                        resumePoint = curWaypoint;
+                        curWaypoint = usePos;
+
+                        calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
 
                         elevatorUse = Squad.ElevatorUseState.Call;
                         break;
 
                     case Squad.ElevatorUseState.Call:
-                        foreach (AI.Core C in members)
-                            C.Agent.autoTraverseOffMeshLink = true;
-
-                        if (Vector3.Distance(c.transform.position, usePos) < 5)
+                        if (Vector3.Distance(c.transform.position, usePos) < 2)
                         {
-                            if (mainPart.curLevel == entry && mainPart.state == Elevator.State.Open)
-                                elevatorUse = ElevatorUseState.Enter;
-                            else
-                            {
-                                calcSquad.CallElevator(mainPart, entry);
-                                calcSquad.AddToWaitList(mainPart, entry, this);
+                            calcSquad.CallElevator(mainPart, entry);
+                            calcSquad.AddToWaitList(mainPart, entry, this);
 
-                                elevatorUse = ElevatorUseState.Wait;
-                            }
+                            elevatorUse = ElevatorUseState.Wait;
                         }
                         break;
 
@@ -111,9 +113,27 @@ namespace Squad
                         break;
 
                     case Squad.ElevatorUseState.Enter:
+                        if (curWaypoint != mainPart.platform.position)
+                        {
+                            curWaypoint = mainPart.platform.position;
+
+                            calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
+
+                            if (!mainPart.nextFloorList.Contains(exit))
+                                mainPart.nextFloorList.Add(exit);
+                        }
+
+                        if (mainPart.state == Elevator.State.Closing)
+                            elevatorUse = ElevatorUseState.Exit;
                         break;
 
                     case Squad.ElevatorUseState.Exit:
+                        if (mainPart.curLevel == exit && mainPart.state == Elevator.State.Open && curWaypoint != resumePoint)
+                        {
+                            curWaypoint = resumePoint;
+
+                            calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
+                        }
                         break;
                 }
             }

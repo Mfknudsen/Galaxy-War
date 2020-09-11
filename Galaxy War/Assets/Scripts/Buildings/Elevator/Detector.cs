@@ -2,24 +2,46 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Elevator
+public class Detector : MonoBehaviour
 {
-    public class Detector : MonoBehaviour
+    public Elevator.Elevator elev = null;
+    public Transform parentTransform = null;
+    public List<GameObject> objs = new List<GameObject>();
+    public List<Transform> parents = new List<Transform>();
+
+    void OnTriggerEnter(Collider other)
     {
-        public Elevator elev = null;
-        public LayerMask detectionMask = 0;
-        public List<GameObject> onPlatform = new List<GameObject>();
-
-        private void OnTriggerEnter(Collider other)
+        if (!elev.objOnPlatform.Contains(other.gameObject) && !other.gameObject.isStatic && other.gameObject.name != "Door")
         {
-            if (!other.gameObject.isStatic)
-                onPlatform.Add(other.gameObject);
+            elev.objOnPlatform.Add(other.gameObject);
+
+            objs.Add(other.gameObject);
+            parents.Add(other.transform.parent);
+            other.transform.parent = parentTransform;
         }
+    }
 
-        private void OnTriggerExit(Collider other)
+    void OnTriggerExit(Collider other)
+    {
+        if (elev.objOnPlatform.Contains(other.gameObject))
         {
-            if (onPlatform.Contains(other.gameObject))
-                onPlatform.Remove(other.gameObject);
+            elev.objOnPlatform.Remove(other.gameObject);
+
+            int removeIndex = -1;
+            for (int i = 0; i < objs.Count; i++)
+            {
+                if (objs[i] == other.gameObject)
+                    removeIndex = i;
+            }
+
+            if (removeIndex != -1)
+            {
+                other.transform.parent = parents[removeIndex];
+
+                parents.RemoveAt(removeIndex);
+                objs.RemoveAt(removeIndex);
+            }
         }
     }
 }
+

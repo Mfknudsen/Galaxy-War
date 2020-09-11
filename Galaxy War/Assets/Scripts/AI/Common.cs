@@ -483,7 +483,7 @@ namespace AI
                         minDistMeet = false;
                 }
 
-                if (minDistMeet)
+                if (minDistMeet && result.magnitude != Mathf.Infinity)
                     findPath = false;
 
                 count++;

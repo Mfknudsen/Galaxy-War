@@ -157,7 +157,6 @@ namespace Squad
             return false;
         }
 
-
         public void ReceiveNewWaypoint(Vector3 pos, AI.WaypointType type, bool isNew)
         {
             if (!containsPlayer)

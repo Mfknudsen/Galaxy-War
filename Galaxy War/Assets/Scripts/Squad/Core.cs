@@ -27,11 +27,12 @@ namespace Squad
 
         [Header(" - Navigation:")]
         public AI.WaypointType waypointType = 0;
+        public float dist = 2;
         public Vector3 curWaypoint = Vector3.zero, lastWaypoint = Vector3.zero;
         public Vector3[] prePositions = new Vector3[0];
         public List<Vector3> waypoints = new List<Vector3>();
 
-        [Header(" - Elevator Values:")]
+        [Header(" - - Elevator Values:")]
         public bool toUseElevator = false;
         public Squad.ElevatorUseState elevatorUse = 0;
         public NavMeshAgent Agent = null;
@@ -68,14 +69,12 @@ namespace Squad
             AI.Core c = members[0];
             if (c.curWaypoint != curWaypoint)
             {
-                calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
+                calcSquad.UpdateMemberPath(members, curWaypoint, dist, containsPlayer);
             }
 
             OffMeshLinkData data = c.Agent.nextOffMeshLinkData;
-            Debug.Log(data.offMeshLink);
             if (data.valid)
             {
-                Debug.Log("Link Found");
                 if (!toUseElevator && data.offMeshLink != null)
                 {
                     NavMeshPath path = c.Agent.path;
@@ -92,8 +91,6 @@ namespace Squad
                     case Squad.ElevatorUseState.Setup:
                         resumePoint = curWaypoint;
                         curWaypoint = usePos;
-
-                        calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
 
                         elevatorUse = Squad.ElevatorUseState.Call;
                         break;
@@ -117,8 +114,6 @@ namespace Squad
                         {
                             curWaypoint = mainPart.platform.position;
 
-                            calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
-
                             if (!mainPart.nextFloorList.Contains(exit))
                                 mainPart.nextFloorList.Add(exit);
                         }
@@ -131,8 +126,6 @@ namespace Squad
                         if (mainPart.curLevel == exit && mainPart.state == Elevator.State.Open && curWaypoint != resumePoint)
                         {
                             curWaypoint = resumePoint;
-
-                            calcSquad.UpdateMemberPath(members, curWaypoint, containsPlayer);
                         }
                         break;
                 }

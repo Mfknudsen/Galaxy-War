@@ -22,7 +22,7 @@ namespace Elevator
 
         public MeshLinkDetector Avaiable(Squad.Core newSquad)
         {
-            if (main.active && inWait.Count < maxSquadCount)
+            if (inWait.Count < maxSquadCount)
             {
                 inWait.Add(newSquad);
                 return this;

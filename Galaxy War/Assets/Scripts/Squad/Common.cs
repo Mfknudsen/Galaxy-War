@@ -57,7 +57,7 @@ namespace Squad
         #endregion
 
         #region Navigation
-        public void UpdateMemberPath(List<AI.Core> members, Vector3 pos, bool containsPlayer)
+        public void UpdateMemberPath(List<AI.Core> members, Vector3 pos, float radius, bool containsPlayer)
         {
             Vector3[] prePoints = new Vector3[members.Count];
             prePoints[0] = pos;
@@ -79,7 +79,8 @@ namespace Squad
                 {
                     AI.Core c = members[i];
                     c.Agent.isStopped = false;
-                    Vector3 newPoint = calcAI.CalculatePointAroundOrigin(prePoints, pos, 5, 3, -1);
+                    Vector3 newPoint = calcAI.CalculatePointAroundOrigin(prePoints, pos, radius, 3, -1);
+
                     if (Vector3.Distance(newPoint, prePoints[i]) > 1)
                     {
                         prePoints[i] = newPoint;
@@ -175,9 +176,6 @@ namespace Squad
         public void EnterOnElevator(Squad.Core core, Elevator.Elevator mainPart)
         {
             core.curWaypoint = mainPart.platform.position;
-
-            core.members[0].Agent.SetDestination(core.curWaypoint);
-            core.calcSquad.UpdateMemberPath(core.members, core.curWaypoint, core.containsPlayer);
         }
         #endregion
     }

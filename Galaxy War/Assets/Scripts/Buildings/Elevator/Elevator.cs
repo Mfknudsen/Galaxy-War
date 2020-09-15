@@ -15,7 +15,7 @@ namespace Elevator
         public State state = 0;
         public Detector detect = null;
         public Transform platform = null;
-        public bool active = true;
+        public bool ready = true;
 
         [Header("Squad:")]
         public int squadCapacity = 1;
@@ -45,6 +45,7 @@ namespace Elevator
         public bool setupDone = false;
         public GameObject[] prefabs = new GameObject[2];
         public GameObject[] linkPoints = new GameObject[0];
+        public GameObject[] carvePoints = new GameObject[0];
 
         [Header(" - Direction:")]
         public bool up = true;
@@ -55,12 +56,22 @@ namespace Elevator
         public LayerMask coverMask = 0;
         public int[] pointCount = new int[0];
         public float[] zonesRadius = new float[0];
-        private List<bool[]> isPointUsed = new List<bool[]>();
-        private List<Transform[]> UseableWaitZonePoints = new List<Transform[]>();
+        private List<CoverSpot>[] UseableWaitZonePoints = new List<CoverSpot>[0];
         #endregion
 
         private void Awake()
         {
+            foreach (GameObject carve in carvePoints)
+            {
+                carve.GetComponent<MeshRenderer>().enabled = false;
+                carve.GetComponent<NavMeshObstacle>().enabled = true;
+            }
+            if (curLevel == nextLevel)
+                carvePoints[curLevel].GetComponent<NavMeshObstacle>().enabled = false;
+
+            if (!platform.gameObject.activeSelf)
+                platform.gameObject.SetActive(true);
+
             SetupOffMeshLink();
             SetupWaitZone();
 
@@ -71,6 +82,8 @@ namespace Elevator
                 d.maxSquadCount = squadCapacity;
                 d.entryLevel = i;
             }
+
+            platform.transform.position = levelTransforms[curLevel].transform.position;
 
             setupDone = true;
         }
@@ -118,20 +131,44 @@ namespace Elevator
                 //
                 //Close the Door
                 case State.Closing:
+                    if (ready)
+                    {
+                        foreach (Squad.Core core in onPlatformList)
+                        {
+                            foreach (AI.Core ai in core.members)
+                            {
+                                ai.Agent.isStopped = true;
+                                ai.Agent.enabled = false;
+                            }
+                        }
+
+                        ready = false;
+                    }
+
                     if (CloseDoor())
-                        state = State.Running;
+                    {
+                        StartCoroutine(delayCarveActive(curLevel, true));
+                        StartCoroutine(delayAgentEnable(false, State.Running));
+                    }
                     break;
 
                 //
                 //Open the Door
                 case State.Opening:
+                    //platform.transform.GetChild(0).GetComponent<NavMeshSurface>().enabled = false;
+
                     if (OpenDoor())
-                        state = State.Open;
+                    {
+                        carvePoints[nextLevel].GetComponent<NavMeshObstacle>().enabled = false;
+                        StartCoroutine(delayAgentEnable(true, State.Open));
+                    }
                     break;
 
                 //
                 //Move the Platform
                 case State.Running:
+                    //platform.transform.GetChild(0).GetComponent<NavMeshSurface>().enabled = true;
+
                     if (Vector3.Distance(platform.position, levelTransforms[nextLevel].position) < 0.2f)
                     {
                         platform.position = levelTransforms[nextLevel].position;
@@ -197,25 +234,13 @@ namespace Elevator
 
         private void SetupWaitZone()
         {
-            pointCount = new int[zonesRadius.Length];
+            UseableWaitZonePoints = new List<CoverSpot>[levelTransforms.Length];
 
-            for (int i = 0; i < zonesRadius.Length; i++)
+            for (int i = 0; i < UseableWaitZonePoints.Length; i++)
             {
-                List<Transform> spots = new List<Transform>();
-                Collider[] cols = Physics.OverlapSphere(linkPoints[i].transform.position, zonesRadius[i], coverMask, QueryTriggerInteraction.Collide);
+                UseableWaitZonePoints[i] = new List<CoverSpot>();
 
-                foreach (Collider c in cols)
-                {
-                    CoverSpot spot = c.GetComponent<CoverSpot>();
 
-                    if (spot != null)
-                        spots.Add(spot.transform);
-                }
-
-                UseableWaitZonePoints.Add(spots.ToArray());
-                isPointUsed.Add(new bool[spots.Count]);
-
-                pointCount[i] = spots.Count;
             }
         }
 
@@ -328,7 +353,7 @@ namespace Elevator
             {
                 foreach (AI.Core c in core.members)
                 {
-                    if (!curOnPlatform.Contains(c.gameObject))
+                    if (!curOnPlatform.Contains(c.gameObject) || !c.onPoint)
                         return false;
                 }
             }
@@ -339,12 +364,29 @@ namespace Elevator
         //Delays
         IEnumerator delayEnterState(Squad.Core squadCore)
         {
-            foreach (AI.Core c in squadCore.members)
-                c.Agent.autoTraverseOffMeshLink = true;
-
             yield return 0;
 
             squadCore.elevatorUse = Squad.ElevatorUseState.Enter;
+        }
+
+        IEnumerator delayAgentEnable(bool toEnable, State next)
+        {
+            yield return 2;
+
+            foreach (Squad.Core core in onPlatformList)
+            {
+                foreach (AI.Core agent in core.members)
+                    agent.Agent.enabled = toEnable;
+            }
+
+            state = next;
+        }
+
+        IEnumerator delayCarveActive(int level, bool toActive)
+        {
+            yield return 0;
+
+            carvePoints[level].GetComponent<NavMeshObstacle>().enabled = toActive;
         }
         #endregion
 

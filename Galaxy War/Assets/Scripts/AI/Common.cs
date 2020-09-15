@@ -451,7 +451,7 @@ namespace AI
         #endregion
 
         #region Pathing
-        public Vector3 CalculateElevatorUseNeed(OffMeshLink link, Vector3 endPoint)
+        public Vector3 CalculateElevatorUseNeed(OffMeshLink link)
         {
             Vector3 result = Vector3.zero;
 
@@ -462,7 +462,7 @@ namespace AI
             return result;
         }
 
-        public Vector3 CalculatePointAroundOrigin(Vector3[] prePoints, Vector3 origin, float radius, float minDist, LayerMask navMask)
+        public Vector3 CalculatePointAroundOrigin(Vector3[] prePoints, Vector3 origin, float radius, float minDist, LayerMask navMask, bool? box = false)
         {
             Vector3 result = Vector3.zero;
             bool findPath = true;
@@ -487,11 +487,8 @@ namespace AI
                     findPath = false;
 
                 count++;
-                if (count >= 100)
-                {
+                if (count >= 10000)
                     findPath = false;
-                    Debug.Log("Failed To Find Point");
-                }
             }
 
             return result;

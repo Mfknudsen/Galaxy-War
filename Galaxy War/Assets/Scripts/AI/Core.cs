@@ -22,6 +22,8 @@ namespace AI
         [Header("Squad:")]
         public Squad.Core currentSquad = null;
         public bool isLeader = false;
+        public bool onPoint = false;
+        public float pointDist = 1.5f;
 
         [Header("States:")]
         public State State;
@@ -106,6 +108,8 @@ namespace AI
 
         public void UpdateCore()
         {
+            onPoint = Vector3.Distance(transform.position, curWaypoint) <= pointDist;
+
             if (CoreIsActive)
             {
                 ConstantUpdate();

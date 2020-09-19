@@ -1,10 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.TerrainAPI;
 using UnityEngine;
 using UnityEngine.AI;
-
-using AI;
-using Elevator;
 
 namespace Squad
 {
@@ -18,6 +16,7 @@ namespace Squad
 
         [Header("Object Reference:")]
         public Squad.Common calcSquad = null;
+        public bool toUpdateSquad = true;
 
         [Header("Squad State:")]
         public bool containsPlayer = false;
@@ -34,6 +33,7 @@ namespace Squad
 
         [Header(" - - Elevator Values:")]
         public bool toUseElevator = false;
+        public bool inCover = false;
         public Squad.ElevatorUseState elevatorUse = 0;
         public NavMeshAgent Agent = null;
         public Elevator.Elevator mainPart = null;
@@ -70,6 +70,8 @@ namespace Squad
             if (c.curWaypoint != curWaypoint)
             {
                 calcSquad.UpdateMemberPath(members, curWaypoint, dist, containsPlayer);
+
+                toUpdateSquad = false;
             }
 
             OffMeshLinkData data = c.Agent.nextOffMeshLinkData;
@@ -88,14 +90,14 @@ namespace Squad
             {
                 switch (elevatorUse)
                 {
-                    case Squad.ElevatorUseState.Setup:
+                    case ElevatorUseState.Setup:
                         resumePoint = curWaypoint;
                         curWaypoint = usePos;
 
-                        elevatorUse = Squad.ElevatorUseState.Call;
+                        elevatorUse = ElevatorUseState.Call;
                         break;
 
-                    case Squad.ElevatorUseState.Call:
+                    case ElevatorUseState.Call:
                         if (Vector3.Distance(c.transform.position, usePos) < 2)
                         {
                             calcSquad.CallElevator(mainPart, entry);
@@ -105,24 +107,46 @@ namespace Squad
                         }
                         break;
 
-                    case Squad.ElevatorUseState.Wait:
+                    case ElevatorUseState.Wait:
+                        if (!inCover)
+                        {
+                            if (mainPart.waitCover[entry].Length > 0)
+                            {
+                                foreach (AI.Core member in members)
+                                {
+                                    GameObject obj = calcSquad.FindBestCover(mainPart.waitCover[entry], usePos);
 
+                                    if (member.isLeader)
+                                        curWaypoint = obj.transform.position;
+
+                                    member.ReceiveNewWaypoint(obj.transform.position);
+                                }
+                            }
+
+                            inCover = true;
+                        }
                         break;
 
-                    case Squad.ElevatorUseState.Enter:
+                    case ElevatorUseState.Enter:
                         if (curWaypoint != mainPart.platform.position)
                         {
                             curWaypoint = mainPart.platform.position;
+                            toUpdateSquad = true;
 
                             if (!mainPart.nextFloorList.Contains(exit))
                                 mainPart.nextFloorList.Add(exit);
                         }
 
-                        if (mainPart.state == Elevator.State.Closing)
+                        if (mainPart.state == Elevator.State.Closing && mainPart.onPlatformList.Contains(this))
+                            elevatorUse = ElevatorUseState.Use;
+                        break;
+
+                    case ElevatorUseState.Use:
+                        if (mainPart.curLevel == mainPart.nextLevel && mainPart.curLevel == exit && mainPart.state == Elevator.State.Open)
                             elevatorUse = ElevatorUseState.Exit;
                         break;
 
-                    case Squad.ElevatorUseState.Exit:
+                    case ElevatorUseState.Exit:
                         if (mainPart.curLevel == exit && mainPart.state == Elevator.State.Open && curWaypoint != resumePoint)
                         {
                             curWaypoint = resumePoint;

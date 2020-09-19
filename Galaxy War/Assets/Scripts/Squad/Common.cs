@@ -7,7 +7,7 @@ namespace Squad
 {
     #region Enums
     public enum SquadManageState { Calculate, UpdateMembers }
-    public enum ElevatorUseState { Setup, Call, Wait, Enter, Exit }
+    public enum ElevatorUseState { Setup, Call, Wait, Enter, Use, Exit }
     #endregion
 
     public class Common : ScriptableObject
@@ -101,6 +101,30 @@ namespace Squad
             }
 
             return Vector3.zero;
+        }
+        #endregion
+
+        #region Waitzone
+        public GameObject FindBestCover(Cover[] covers, Vector3 entry)
+        {
+            GameObject result = covers[0].usableCoverSpots[0];
+            float angel = Vector3.Angle(entry, result.transform.position); ;
+
+            foreach (Cover main in covers)
+            {
+                foreach (GameObject c in main.usableCoverSpots)
+                {
+                    float checkAngel = Vector3.Angle(entry, c.transform.position);
+
+                    if (checkAngel < angel)
+                    {
+                        angel = checkAngel;
+                        result = c;
+                    }
+                }
+            }
+
+            return result;
         }
         #endregion
 

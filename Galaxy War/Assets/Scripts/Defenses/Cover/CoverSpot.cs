@@ -24,7 +24,7 @@ public class CoverSpot : MonoBehaviour
 
     private void Update()
     {
-        if (active)
+        if (!active)
         {
             if (count % 2 == 0)
             {

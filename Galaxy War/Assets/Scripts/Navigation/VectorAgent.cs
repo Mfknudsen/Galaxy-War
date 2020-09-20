@@ -22,7 +22,7 @@ namespace VectorNavigation
 
         [Header("Movement:")]
         public float moveSpeed = 2.5f;
-        public float moveStoppindDist = 0.1f;
+        public float moveStopDist = 0.1f;
         private int moveIndex = 0;
         private bool checkPoints = true;
         private Vector3 lastPos = Vector3.zero;
@@ -67,18 +67,46 @@ namespace VectorNavigation
             {
                 transform.position += movePoints[moveIndex] * moveSpeed * Time.deltaTime;
 
-                if (Vector3.Distance(transform.position, lastPos + movePoints[moveIndex]) <= moveStoppindDist)
+                if (Vector3.Distance(transform.position, lastPos + movePoints[moveIndex]) <= moveStopDist)
                 {
                     lastPos += movePoints[moveIndex];
                     moveIndex++;
-                    Debug.Log(moveIndex);
+
+                    if (moveIndex == movePoints.Length)
+                    {
+                        movePoints = new Vector3[0];
+                        moveIndex = 0;
+                        pathFinder.ClearPath();
+                    }
                 }
             }
         }
-        #endregion
 
-        #region Rotation Calculations:
         private void Rotate()
+        {
+            if (movePoints.Length > 0 && moveIndex < movePoints.Length)
+            {
+                Vector3 target = lastPos + movePoints[moveIndex];
+                Vector3 goalForward = (target - transform.position).normalized;
+                Quaternion newLookRot = Quaternion.FromToRotation(transform.forward, goalForward);
+
+                /*
+                if (Vector3.Angle(transform.forward, goalForward) > 2.5f)
+                    transform.rotation = Quaternion.Lerp(Quaternion.Euler(transform.forward), newLookRot, rotSpeed * Time.deltaTime) * transform.rotation;
+                else
+                    transform.rotation = newLookRot * transform.rotation;
+                */
+
+                //transform.Rotate(transform.up, goalForward.magnitude);
+            }
+        }
+
+        private void Gravity()
+        {
+
+        }
+
+        private void Jump()
         {
 
         }

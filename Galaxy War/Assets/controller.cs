@@ -11,7 +11,9 @@ public class controller : MonoBehaviour
     public Transform waypoint = null;
     public Vector3 lastPoint = Vector3.zero;
 
-    private VectorNavigation.VectorAgent agent = null;
+    [Header(" - Agent:")]
+    [SerializeField] private VectorNavigation.VectorAgent agent = null;
+    public float moveSpeed = 1, rotSpeed = 1, stopDist = 0.25f;
 
     private void Awake()
     {
@@ -20,6 +22,9 @@ public class controller : MonoBehaviour
 
         agent.Setup(navigationField);
         agent.debugMode = true;
+        agent.moveSpeed = moveSpeed;
+        agent.rotSpeed = rotSpeed;
+        agent.moveStopDist = stopDist;
     }
 
     private void Update()

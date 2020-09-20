@@ -200,6 +200,16 @@ namespace VectorNavigation
         }
         #endregion
 
+        #region Input:
+        public void ClearPath()
+        {
+            pathFound = false;
+            path.Clear();
+            open.Clear();
+            closed.Clear();
+        }
+        #endregion
+
         #region Output:
         public Vector3[] GetMovePoints()
         {

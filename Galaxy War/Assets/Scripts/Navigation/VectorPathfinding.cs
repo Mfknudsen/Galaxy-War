@@ -51,10 +51,7 @@ namespace VectorNavigation
                 if (!IsOverlaying(neighbor.GetRelativPosition()) && neighbor.active)
                 {
                     VectorPathNode newNode = ScriptableObject.CreateInstance("VectorNavigation.VectorPathNode") as VectorPathNode;
-                    newNode.Setup(neighbor, position, endPoint);
-                    newNode.lastNode = node;
-                    newNode.name = node.name + 1;
-                    newNode.lastName = node.name;
+                    newNode.Setup(neighbor, position, endPoint, node);
                     open.Add(newNode);
                     overlayList.Add(newNode.position);
 
@@ -145,7 +142,7 @@ namespace VectorNavigation
             overlayList.Clear();
 
             VectorPathNode current = CreateInstance("VectorNavigation.VectorPathNode") as VectorPathNode;
-            current.Setup(GetClosestNode(position), position, lastPoint);
+            current.Setup(GetClosestNode(position), position, lastPoint, null);
             current.isStart = true;
             start = current;
             open.Add(start);

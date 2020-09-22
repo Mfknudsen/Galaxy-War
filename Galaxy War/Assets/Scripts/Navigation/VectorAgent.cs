@@ -9,8 +9,6 @@ namespace VectorNavigation
     {
         public bool debugMode = false;
 
-        public float MoveSpeed = 1, RotSpeed;
-
         [Header("Pathfinding:")]
         public NavVector field = null;
         private VectorPathfinding pathFinder = null;
@@ -86,18 +84,25 @@ namespace VectorNavigation
         {
             if (movePoints.Length > 0 && moveIndex < movePoints.Length)
             {
-                Vector3 target = lastPos + movePoints[moveIndex];
-                Vector3 goalForward = (target - transform.position).normalized;
-                Quaternion newLookRot = Quaternion.FromToRotation(transform.forward, goalForward);
+                Vector3 target = movePoints[moveIndex];
 
-                /*
-                if (Vector3.Angle(transform.forward, goalForward) > 2.5f)
-                    transform.rotation = Quaternion.Lerp(Quaternion.Euler(transform.forward), newLookRot, rotSpeed * Time.deltaTime) * transform.rotation;
+                float yCurAngel = transform.rotation.eulerAngles.y;
+                float yAngel = Quaternion.LookRotation(target, transform.up).eulerAngles.y;
+
+                if (transform.rotation.eulerAngles.y - yAngel <= 180)
+                {
+
+                }
                 else
-                    transform.rotation = newLookRot * transform.rotation;
-                */
+                {
 
-                //transform.Rotate(transform.up, goalForward.magnitude);
+                }
+
+                if (yAngel != 0)
+                {
+                    Vector3 newRotation = transform.rotation.eulerAngles;
+                    newRotation.y = Mathf.Lerp(yCurAngel, yAngel, rotSpeed * Time.deltaTime);
+                }
             }
         }
 

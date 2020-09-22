@@ -20,14 +20,23 @@ namespace VectorNavigation
         public float endDistance = 0;
         public float startDistance = 0;
 
-        public void Setup(VectorNode node, Vector3 start, Vector3 end)
+        public void Setup(VectorNode node, Vector3 start, Vector3 end, VectorPathNode preNode)
         {
             vecNode = node;
 
             position = node.postition + node.direction;
             normal = node.normal;
 
-            startDistance = Vector3.Distance(position, start);
+            if (preNode == null)
+                startDistance = Vector3.Distance(position, start);
+            else
+            {
+                startDistance = Vector3.Distance(position, preNode.position) + preNode.startDistance;
+
+                lastNode = preNode;
+                name = preNode.name + 1;
+                lastName = name - 1;
+            }
             endDistance = Vector3.Distance(position, end);
         }
 

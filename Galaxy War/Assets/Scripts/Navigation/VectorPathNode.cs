@@ -24,7 +24,7 @@ namespace VectorNavigation
         {
             vecNode = node;
 
-            position = node.postition + node.direction;
+            position = node.GetRelativPosition();
             normal = node.normal;
 
             if (preNode == null)

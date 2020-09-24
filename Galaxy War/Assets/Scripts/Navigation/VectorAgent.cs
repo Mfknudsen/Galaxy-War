@@ -84,25 +84,15 @@ namespace VectorNavigation
         {
             if (movePoints.Length > 0 && moveIndex < movePoints.Length)
             {
-                Vector3 target = movePoints[moveIndex];
+                Vector3 pointTarget = movePoints[moveIndex];
+                Vector3 rotTarget = Quaternion.LookRotation(pointTarget, transform.up).eulerAngles;
+                rotTarget.x = transform.rotation.eulerAngles.x;
+                rotTarget.z = transform.rotation.eulerAngles.z;
 
-                float yCurAngel = transform.rotation.eulerAngles.y;
-                float yAngel = Quaternion.LookRotation(target, transform.up).eulerAngles.y;
-
-                if (transform.rotation.eulerAngles.y - yAngel <= 180)
-                {
-
-                }
+                if (Mathf.Abs(rotTarget.y - transform.rotation.eulerAngles.y) > 0.5f)
+                    transform.rotation = Quaternion.Lerp(Quaternion.Euler(transform.rotation.eulerAngles), Quaternion.Euler(rotTarget), rotSpeed * Time.deltaTime);
                 else
-                {
-
-                }
-
-                if (yAngel != 0)
-                {
-                    Vector3 newRotation = transform.rotation.eulerAngles;
-                    newRotation.y = Mathf.Lerp(yCurAngel, yAngel, rotSpeed * Time.deltaTime);
-                }
+                    transform.rotation = Quaternion.Euler(rotTarget);
             }
         }
 

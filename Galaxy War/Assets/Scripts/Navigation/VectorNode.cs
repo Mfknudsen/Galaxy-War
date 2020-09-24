@@ -9,6 +9,8 @@ namespace VectorNavigation
         public VectorNode preNode = null;
         public List<VectorNode> neighbors = new List<VectorNode>();
 
+        public float cost = 1;
+
         public Vector3 postition = Vector3.zero;
         public Vector3 direction = Vector3.zero;
         public Vector3 normal = Vector3.up;

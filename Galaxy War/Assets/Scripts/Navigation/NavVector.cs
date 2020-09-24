@@ -5,13 +5,18 @@ using UnityEngine;
 
 namespace VectorNavigation
 {
+    [ExecuteInEditMode]
     public class NavVector : MonoBehaviour
     {
+        [Header("Debug:")]
         public bool dev_Active = false;
         public float dev_Dist = 1;
         public Color dev_Col = Color.white;
-        [Space]
 
+        [Header("Editor:")]
+        [SerializeField] private bool editActivate = false;
+
+        [Header("Object Reference:")]
         public int state = 0;
         public LayerMask detectionMask = 0;
         public GameObject navObject = null;
@@ -20,37 +25,35 @@ namespace VectorNavigation
         public List<VectorNode> startNodes = new List<VectorNode>();
         public List<VectorNode> activeNodes = new List<VectorNode>();
         private List<Vector3> indexList = new List<Vector3>();
-        [Space]
-
         public Vector3[] directions = new Vector3[26];
         public Vector3 offset = Vector3.zero;
         public float height = 1, length = 1, width = 1;
-        [Space]
-
-        private int i = 0;
-
-        private void Start()
-        {
-            offset = startTransform.position - (startTransform.forward * length * 0.5f + startTransform.right * width * 0.5f + startTransform.up * height * 0.5f);
-
-            SetDirections();
-
-            SetupNavVectorField();
-            SetNodeNeighbors();
-            SetNodeActive();
-
-            state++;
-        }
 
         private void Update()
         {
+            if (editActivate)
+            {
+
+                activeNodes.Clear();
+                indexList.Clear();
+
+                offset = startTransform.position - (startTransform.forward * length * 0.5f + startTransform.right * width * 0.5f + startTransform.up * height * 0.5f);
+
+                SetDirections();
+
+                SetupNavVectorField();
+                SetNodeNeighbors();
+                SetNodeActive();
+
+                startNodes.Clear();
+
+                editActivate = false;
+            }
+
             if (dev_Active)
             {
-                foreach (VectorNode node in startNodes)
-                {
-                    if (node.active)
-                        Debug.DrawLine(node.postition + node.direction, node.postition + node.direction + (-node.normal * dev_Dist), dev_Col);
-                }
+                foreach (VectorNode node in activeNodes)
+                    Debug.DrawLine(node.postition + node.direction, node.postition + node.direction + (-node.normal * dev_Dist), dev_Col);
             }
         }
 

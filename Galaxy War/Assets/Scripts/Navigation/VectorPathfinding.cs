@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace VectorNavigation
@@ -15,6 +14,7 @@ namespace VectorNavigation
         private VectorPathNode start = null;
         private Vector3 endPoint = Vector3.zero, position = Vector3.zero;
 
+        private List<VectorNode> possibleNodes = new List<VectorNode>();
         private List<VectorPathNode> path = new List<VectorPathNode>(), open = new List<VectorPathNode>(), closed = new List<VectorPathNode>();
         private List<Vector3> overlayList = new List<Vector3>();
 
@@ -59,25 +59,23 @@ namespace VectorNavigation
             }
         }
 
-        private VectorNode GetClosestNode(Vector3 pos)
+        private VectorNode GetClosestNode(Vector3 pos, bool? start = false)
         {
-            VectorNode result = navField.activeNodes[0];
+            VectorNode result = null;
+            List<VectorNode> nodes = possibleNodes;
 
-            float curDist = Vector3.Distance(result.GetRelativPosition(), pos);
+            if (start.Value)
+                nodes = navField.activeNodes;
 
-            foreach (VectorNode node in navField.activeNodes)
+            //Using LinQ to find closest node based on distance in current NavigationField:
+            result = navField.activeNodes.Select(select => new
             {
-                if (node != result && node.active)
-                {
-                    float newDist = Vector3.Distance(node.GetRelativPosition(), pos);
-
-                    if (newDist < curDist || !result.active)
-                    {
-                        result = node;
-                        curDist = newDist;
-                    }
-                }
+                Value = select,
+                Difference = (pos - select.GetRelativPosition()).magnitude
             }
+            ).OrderBy(select => select.Difference).First().Value;
+
+
 
             return result;
         }
@@ -142,7 +140,7 @@ namespace VectorNavigation
             overlayList.Clear();
 
             VectorPathNode current = CreateInstance("VectorNavigation.VectorPathNode") as VectorPathNode;
-            current.Setup(GetClosestNode(position), position, lastPoint, null);
+            current.Setup(GetClosestNode(position, true), position, lastPoint, null);
             current.isStart = true;
             start = current;
             open.Add(start);

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class controller : MonoBehaviour
 {
+    public bool ready = false;
+
     [Header("Navigation:")]
     public VectorNavigation.NavVector navigationField = null;
 
@@ -24,14 +26,24 @@ public class controller : MonoBehaviour
         agent.moveSpeed = moveSpeed;
         agent.rotSpeed = rotSpeed;
         agent.moveStopDist = stopDist;
+
+        agent.enableMovement = false;
+        agent.enableRotation = false;
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && navigationField.activeNodes.Count != 0)
-        {
-            lastPoint = waypoint.position;
-            agent.SetDestination(lastPoint);
-        }
+        ready = agent.pathFound;
+    }
+
+    public void getNewDestination(Vector3 pos)
+    {
+        agent.SetDestination(pos);
+    }
+
+    public void moveA()
+    {
+        agent.enableMovement = true;
+        agent.enableRotation = true;
     }
 }

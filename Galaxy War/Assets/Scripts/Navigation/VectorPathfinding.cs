@@ -20,6 +20,7 @@ namespace VectorNavigation
 
         public void DebugPath()
         {
+            /*
             foreach (VectorPathNode node in closed)
             {
                 if (!node.isStart)
@@ -30,6 +31,7 @@ namespace VectorNavigation
                 if (!node.isStart)
                     Debug.DrawLine(node.position, node.lastNode.position, Color.red);
             }
+            */
             foreach (VectorPathNode node in path)
             {
                 if (!node.isStart)

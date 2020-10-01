@@ -10,6 +10,7 @@ namespace VectorNavigation
         public bool debugMode = false;
 
         [Header("Pathfinding:")]
+        public bool pathFound = false;
         public NavVector field = null;
         private VectorPathfinding pathFinder = null;
         private Coroutine currentPathCalculation = null;
@@ -41,6 +42,8 @@ namespace VectorNavigation
 
             if (enableRotation)
                 Rotate();
+
+            pathFound = pathFinder.pathFound;
         }
 
         #region Movement Calculations:

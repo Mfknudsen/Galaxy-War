@@ -21,7 +21,7 @@ public class CoverManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!setupComplete)
+        if (!setupComplete && coversToUpdate.Count != 0)
         {
             List<Cover> toRemoveFromUpdate = new List<Cover>();
 

@@ -70,8 +70,8 @@ namespace Player
             inputZ = moveAxis[1];
 
             Vector2 rotAxis = common.GetMouseVector();
-            rotX = rotAxis[0];
-            rotY = rotAxis[1];
+            rotY = rotAxis.x;
+            rotX = rotAxis.y;
         }
 
         void FixedUpdate()

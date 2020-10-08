@@ -192,64 +192,7 @@ namespace AI
         public GameObject FindBestWeapon(Vector3 origin, GameObject[] objects, GameObject[] curInventory, Weapon.WeaponType[] faveredType)
         {
             GameObject result = null;
-            List<Weapon.WeaponSize> weaponSize = new List<Weapon.WeaponSize>() { Weapon.WeaponSize.Main, Weapon.WeaponSize.Sidearm, Weapon.WeaponSize.Melee };
-
-            //
-            //Setup missing sizes based on current inventory
-            foreach (GameObject obj in curInventory)
-            {
-                if (obj != null)
-                {
-                    Weapon.Common curHolder = obj.GetComponent<Weapon.Common>();
-                    Weapon.WeaponSize curSize = curHolder.weaponSize;
-                    if (weaponSize.Contains(curSize) && !curHolder.isEmpty)
-                        weaponSize.Remove(curSize);
-                }
-            }
-
-            //
-            //Check the current weapons in range based on their size
-            List<Weapon.Common> holders = new List<Weapon.Common>();
-            List<GameObject> toCheck = new List<GameObject>();
-
-            foreach (GameObject obj in objects)
-                holders.Add(obj.GetComponent<Weapon.Common>());
-
-            for (int i = 0; i < weaponSize.Count; i++)
-            {
-                foreach (Weapon.Common hold in holders)
-                {
-                    if (hold.weaponSize == weaponSize[i])
-                    {
-                        if (faveredType.Length > 0)
-                        {
-                            if (faveredType.Contains(hold.weaponType))
-                            {
-                                toCheck.Add(hold.gameObject);
-                            }
-                        }
-                        else
-                            toCheck.Add(hold.gameObject);
-                    }
-                }
-
-                if (toCheck.Count > 0)
-                    break;
-            }
-
-            //
-            //Deside what weapon to go for based on distance
-            float curDistance = 100;
-            foreach (GameObject obj in toCheck)
-            {
-                Vector3 dir = obj.transform.position - origin;
-                if (dir.magnitude < curDistance)
-                {
-                    result = obj;
-                    curDistance = dir.magnitude;
-                }
-            }
-
+         
             return result;
         }
 
@@ -383,24 +326,9 @@ namespace AI
 
         }
 
-        public void PickUpWeapon(Core currentAI, Weapon.Common currentHolder)
+        public void PickUpWeapon(Core currentAI)
         {
-            int i = currentHolder.weaponSize.GetHashCode();
-
-            if (currentAI.weaponsInInventory[i] != null)
-                DiscardWeapon(currentAI.weaponsInInventory[0], currentHolder.transform);
-            currentAI.weaponsInInventory[0] = currentHolder.gameObject;
-
-            if (!currentHolder.isEmpty)
-            {
-                currentAI.curWeapon = currentHolder.gameObject;
-                currentHolder.gameObject.transform.position = currentAI.weaponHolder.position;
-                currentHolder.gameObject.transform.rotation = currentAI.weaponHolder.rotation;
-                currentHolder.gameObject.transform.parent = currentAI.weaponHolder;
-                currentHolder.gameObject.GetComponent<BoxCollider>().enabled = false;
-
-                currentAI.outOfAmmo = false;
-            }
+          
         }
 
         public void DiscardWeapon(GameObject oldWeapon, Transform newPlacement)

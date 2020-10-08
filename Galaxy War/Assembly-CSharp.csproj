@@ -65,7 +65,7 @@
     <Compile Include="Assets\NavCalcTest.cs" />
     <Compile Include="Assets\Scripts\Commander\Movement.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverManager.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Common.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Weapon.cs" />
     <Compile Include="Assets\Scripts\Weapons\Types\Knife.cs" />
     <Compile Include="Assets\Scripts\AI\Director.cs" />
     <Compile Include="Assets\Scripts\Buildings\Elevator\Waitzone.cs" />
@@ -92,6 +92,7 @@
     <Compile Include="Assets\test.cs" />
     <Compile Include="Assets\Scripts\Navigation\VectorNode.cs" />
     <Compile Include="Assets\Scripts\Weapons\Types\SniperRifle.cs" />
+    <Compile Include="Assets\planes.cs" />
     <Compile Include="Assets\controller.cs" />
     <Compile Include="Assets\Scripts\Defenses\Cover\CoverSpot.cs" />
     <Compile Include="Assets\Scripts\AI\Common.cs" />
@@ -99,10 +100,10 @@
     <Compile Include="Assets\Scripts\Weapons\Types\AssaultRifle.cs" />
     <Compile Include="Assets\Scripts\Buildings\Elevator\Elevator.cs" />
     <Compile Include="Assets\Scripts\Navigation\NavVector.cs" />
-    <Compile Include="Assets\Scripts\Weapons\Ammo\Bullet.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Ammo\RifleBullet.cs" />
     <Compile Include="Assets\Scripts\Commander\Selectable.cs" />
     <Compile Include="Assets\Scripts\Systems\NavmeshDirector.cs" />
-    <Compile Include="Assets\planes.cs" />
+    <Compile Include="Assets\Scripts\Weapons\Projectile.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

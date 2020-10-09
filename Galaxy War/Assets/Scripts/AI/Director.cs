@@ -8,40 +8,50 @@ namespace AI
 
     public class Director : MonoBehaviour
     {
-        [Header("Object Reference")]
+        public static Director Instance { get; private set;}
+
+        [Header("Object Reference:")]
         public int Count = 0;
-        public List<Core> CoreInCloseRange;
-        public List<Core> CoreInMediumRange;
-        public List<Core> CoreInLongRange;
-        public AI.Common calcAI = null;
+        public List<Core> CoreInCloseRange = new List<Core>();
+        public List<Core> CoreInMediumRange = new List<Core>();
+        public List<Core> CoreInLongRange = new List<Core>();
+        public Common calcAI = null;
 
-        [Header("Distance")]
+        [Header(" - Distance:")]
         public Transform Player;
-        public int closeToMedium = 10, mediumToLong = 20;
+        public int closeToMedium = 50, mediumToLong = 100;
 
-        [Header("Update Counter")]
+        [Header(" - Update Counter:")]
         public int distDelay = 10;
         public int mediumDelay = 3, longDelay = 5;
         private int counter = 0, fixedCounter = 0;
 
         private Vector3[] LookDirections;
 
-        private void Start()
+        private void Awake()
         {
-            calcAI = ScriptableObject.CreateInstance("AI.Common") as AI.Common;
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
 
-            CoreInCloseRange = new List<Core>();
-            CoreInMediumRange = new List<Core>();
-            CoreInLongRange = new List<Core>();
+                calcAI = ScriptableObject.CreateInstance("AI.Common") as Common;
 
-            if (calcAI != null)
-                LookDirections = calcAI.GetSightDirections(5000);
+                CoreInCloseRange = new List<Core>();
+                CoreInMediumRange = new List<Core>();
+                CoreInLongRange = new List<Core>();
+
+                if (calcAI != null)
+                    LookDirections = calcAI.GetSightDirections(5000);
+                else
+                    Debug.Log("Null");
+                Core[] startCores = FindObjectsOfType<Core>();
+
+                foreach (Core c in startCores)
+                    AddNewCore(c);
+            }
             else
-                Debug.Log("Null");
-            Core[] startCores = GameObject.FindObjectsOfType<Core>();
-
-            foreach (Core c in startCores)
-                AddNewCore(c);
+                Destroy(gameObject);
         }
 
         private void Update()

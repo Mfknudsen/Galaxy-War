@@ -839,16 +839,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7feb5e5dd5ff3574cb2b659671f63e2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: 
   size: 0
   type: 0
   projectile: {fileID: 3950338521374151423, guid: c31406f68af931e44b924076a0ce2b3e, type: 3}
+  projectileSpawnPoint: {fileID: 1082668389}
+  magSpawnPoint: {fileID: 1866165525}
   readyToShot: 0
-  maxMagSize: 50
-  curMagSize: 50
   toReload: 0
   reloadTime: 0.5
   triggerOne: 323
+  delayTimeOne: 0.1
+  maxMagOne: 50
   triggerTwo: 324
+  delayTimeTwo: 0.5
+  maxMagTwo: 50
+  changeProjetile: 1
+  useGravity: 0
+  speed: 10.08
+  gravity: -9.81
 --- !u!4 &523953391
 Transform:
   m_ObjectHideFlags: 0
@@ -2521,8 +2530,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9215b75f47a602045aa701aec98011f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  updateDelay: 60
   surfaces: []
+  updateDelay: 60
 --- !u!1 &2036743222
 GameObject:
   m_ObjectHideFlags: 0

@@ -111,6 +111,8 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 512
+  decayOverTime: 1
+  decayTime: 5
   gravityEffect: 0
   gravity: -9.81
   moveSpeed: 1

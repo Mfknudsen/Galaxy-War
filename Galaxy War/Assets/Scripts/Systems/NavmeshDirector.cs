@@ -5,14 +5,22 @@ using UnityEngine.AI;
 
 public class NavmeshDirector : MonoBehaviour
 {
-    public int updateDelay = 60;
+    public static NavmeshDirector Instance { get; private set; }
+
+    [Header("Object Reference:")]
+    public List<NavMeshSurface> surfaces = new List<NavMeshSurface>();
+    public int updateDelay = 3;
     private int count = 0;
 
-    public List<NavMeshSurface> surfaces = new List<NavMeshSurface>();
-
-    void Start()
+    private void Awake()
     {
-
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+            Destroy(gameObject);
     }
 
     void Update()
@@ -33,5 +41,15 @@ public class NavmeshDirector : MonoBehaviour
                 s.BuildNavMesh();
             }
         }
+    }
+
+    public void AddSurface(NavMeshSurface surface)
+    {
+        surfaces.Add(surface);
+    }
+
+    public void RemoveSurface(NavMeshSurface surface)
+    {
+        surfaces.Remove(surface);
     }
 }

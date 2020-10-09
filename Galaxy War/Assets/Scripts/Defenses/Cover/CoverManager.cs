@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class CoverManager : MonoBehaviour
 {
+    public static CoverManager Instance { get; private set; }
+
     [Header("Object Reference")]
     public bool setupComplete = false;
     public List<Cover> Covers = new List<Cover>();
@@ -12,17 +14,27 @@ public class CoverManager : MonoBehaviour
 
     private void Start()
     {
-        GameObject[] objs = GameObject.FindGameObjectsWithTag("Cover");
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
 
-        foreach (GameObject o in objs)
-            Covers.Add(o.GetComponent<Cover>());
-        coversToUpdate = Covers;
+            GameObject[] objs = GameObject.FindGameObjectsWithTag("Cover");
+
+            foreach (GameObject o in objs)
+                Covers.Add(o.GetComponent<Cover>());
+            coversToUpdate = Covers;
+        }
+        else
+            Destroy(gameObject);
     }
 
     private void FixedUpdate()
     {
-        if (!setupComplete && coversToUpdate.Count != 0)
+        if (coversToUpdate.Count != 0)
         {
+            setupComplete = false;
+
             List<Cover> toRemoveFromUpdate = new List<Cover>();
 
             coversToUpdate[index].UpdateCover();
@@ -40,8 +52,7 @@ public class CoverManager : MonoBehaviour
 
             if (coversToUpdate.Count == 0)
                 setupComplete = true;
-        }
-        else if (coversToUpdate.Count != 0)
+        } else
             setupComplete = true;
     }
 }
